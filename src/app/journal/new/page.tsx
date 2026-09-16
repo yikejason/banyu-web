@@ -1,10 +1,12 @@
 import { JournalEditor } from "@/components/journal/JournalEditor";
+import { NightScene } from "@/components/layout/NightScene";
 
 export default function NewJournalPage() {
   return (
-    <main className="max-w-lg mx-auto p-6">
-      <h1 className="text-2xl font-medium mb-4">写日记</h1>
-      <JournalEditor />
-    </main>
+    <NightScene title="写日记" subtitle="这篇只加密保存在本机，不会上传。">
+      <section className="planet-glass p-5">
+        <JournalEditor />
+      </section>
+    </NightScene>
   );
 }

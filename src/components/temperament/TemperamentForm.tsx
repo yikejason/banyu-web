@@ -32,18 +32,19 @@ export function TemperamentForm({ compact }: { compact?: boolean }) {
     setSaved(true);
   }
 
-  return (
-    <Card>
-      <h2 className="mb-3 font-medium">{compact ? "性情底色" : "编辑性情"}</h2>
-      <div className="flex flex-col gap-3">
-        <TextField label="气质" value={tone} onChange={setTone} />
-        <TextField label="表达风格" value={style} onChange={setStyle} />
-        <TextField label="关键词（空格分隔，最多 5 个）" value={keywords} onChange={setKeywords} />
-        <Button variant="tonal" onClick={onSave}>
-          保存
-        </Button>
-        {saved && <p className="text-sm text-on-surface-variant">已留在本机。</p>}
-      </div>
-    </Card>
+  const form = (
+    <div className="flex flex-col gap-3">
+      {!compact && <h2 className="font-medium">编辑性情</h2>}
+      <TextField label="气质" value={tone} onChange={setTone} />
+      <TextField label="表达风格" value={style} onChange={setStyle} />
+      <TextField label="关键词（空格分隔，最多 5 个）" value={keywords} onChange={setKeywords} />
+      <Button variant="tonal" onClick={onSave}>
+        保存
+      </Button>
+      {saved && <p className="text-sm text-on-surface-variant">已留在本机。</p>}
+    </div>
   );
+
+  if (compact) return form;
+  return <Card>{form}</Card>;
 }

@@ -1,3 +1,4 @@
+import { NightScene } from "@/components/layout/NightScene";
 import { ShareViewer } from "@/components/share/ShareViewer";
 
 export default async function SharedPage({
@@ -7,9 +8,8 @@ export default async function SharedPage({
 }) {
   const { id } = await params;
   return (
-    <main className="min-h-dvh max-w-lg mx-auto p-6 flex flex-col items-center justify-center">
-      <h1 className="text-2xl font-medium mb-8">伴语星球</h1>
+    <NightScene fullScreen title="伴语星球" subtitle="有人把性情和此刻，只交给你。">
       <ShareViewer id={id} />
-    </main>
+    </NightScene>
   );
 }

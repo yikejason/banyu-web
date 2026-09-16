@@ -3,6 +3,7 @@
 import { Button } from "@/components/m3/Button";
 import { Card } from "@/components/m3/Card";
 import { FAB } from "@/components/m3/FAB";
+import { NightScene } from "@/components/layout/NightScene";
 import { deleteRecord, listRecords } from "@/lib/storage/vault";
 import type { ShareLocal } from "@/lib/share/types";
 import { useRouter } from "next/navigation";
@@ -31,18 +32,18 @@ export default function ShareManagePage() {
   }
 
   return (
-    <main className="max-w-lg mx-auto p-6">
-      <h1 className="text-2xl font-medium mb-4">私密分享</h1>
+    <NightScene title="私密分享" subtitle="链接由你亲自发给想看见的人，随时可以收回。">
       {!items || items.length === 0 ? (
-        <p className="text-on-surface-variant">没有正在进行的分享。</p>
+        <div className="planet-glass p-6 text-center">
+          <p>没有正在进行的分享。</p>
+          <p className="mt-2 text-sm text-on-surface-variant">需要被理解时，再打开一扇很小的门。</p>
+        </div>
       ) : (
         <div className="flex flex-col gap-3">
           {items.map((item) => (
             <Card key={item.id}>
               <p className="text-sm">{item.createdAt.slice(0, 16).replace("T", " ")}</p>
-              <p className="text-xs text-on-surface-variant mt-1">
-                {item.expiresAt.slice(0, 10)} 到期
-              </p>
+              <p className="text-xs text-on-surface-variant mt-1">{item.expiresAt.slice(0, 10)} 到期</p>
               <Button className="mt-3" variant="outlined" onClick={() => stop(item)}>
                 停止分享
               </Button>
@@ -51,6 +52,6 @@ export default function ShareManagePage() {
         </div>
       )}
       <FAB label="发起分享" onClick={() => router.push("/share/new")} />
-    </main>
+    </NightScene>
   );
 }

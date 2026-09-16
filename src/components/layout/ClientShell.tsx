@@ -1,15 +1,15 @@
 "use client";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { UnlockGate } from "@/components/vault/UnlockGate";
+import { CoverGate } from "@/components/cover/CoverGate";
 import { usePathname } from "next/navigation";
 
 export function ClientShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   if (path.startsWith("/s/")) return <>{children}</>;
   return (
-    <UnlockGate>
+    <CoverGate>
       <AppShell>{children}</AppShell>
-    </UnlockGate>
+    </CoverGate>
   );
 }

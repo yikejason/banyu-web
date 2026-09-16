@@ -39,13 +39,12 @@ export function JournalEditor({ id }: { id?: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-on-surface-variant">这篇日记只加密保存在本机，不会上传。</p>
       <TextField label="标题（可空）" value={title} onChange={setTitle} />
       <TextField label="正文" value={body} onChange={setBody} textarea />
       <label className="text-sm text-on-surface-variant flex flex-col gap-2">
         关联情绪
         <select
-          className="h-12 rounded-md border border-outline bg-transparent px-3"
+          className="h-12 rounded-md border border-outline bg-surface-container px-3 text-on-surface"
           value={emotionId}
           onChange={(e) => setEmotionId(e.target.value)}
         >

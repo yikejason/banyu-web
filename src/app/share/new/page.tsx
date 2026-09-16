@@ -1,10 +1,12 @@
+import { NightScene } from "@/components/layout/NightScene";
 import { ShareComposer } from "@/components/share/ShareComposer";
 
 export default function NewSharePage() {
   return (
-    <main className="max-w-lg mx-auto p-6">
-      <h1 className="text-2xl font-medium mb-4">定制分享</h1>
-      <ShareComposer />
-    </main>
+    <NightScene title="定制分享" subtitle="只会交出性情和当前状态。日记正文不会出现在链接里。">
+      <section className="planet-glass p-5">
+        <ShareComposer />
+      </section>
+    </NightScene>
   );
 }

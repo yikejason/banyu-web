@@ -30,9 +30,9 @@ export function ShareViewer({ id }: { id: string }) {
   }, [id]);
 
   if (closed) {
-    return <p className="text-on-surface-variant">这份分享已关闭或从不存在。</p>;
+    return <p className="text-center text-on-surface-variant">这份分享已关闭或从不存在。</p>;
   }
-  if (!snap) return <p className="text-on-surface-variant">正在打开…</p>;
+  if (!snap) return <p className="text-center text-on-surface-variant">正在打开…</p>;
 
   return (
     <div className="flex flex-col items-center gap-6">

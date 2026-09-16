@@ -75,7 +75,7 @@ export function ShareComposer() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-on-surface-variant">
-        只会分享性情和当前状态。日记正文不会出现在链接里。请把链接亲自发给想看见的人。
+        请把链接亲自发给想看见的人。
       </p>
       <TextField label="简要状态（可选，不要写日记）" value={note} onChange={setNote} />
       <Button variant="filled" onClick={create}>

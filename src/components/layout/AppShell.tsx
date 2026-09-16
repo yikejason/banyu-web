@@ -12,7 +12,7 @@ const ITEMS = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   return (
-    <div className="min-h-dvh flex flex-col md:flex-row bg-surface text-on-surface">
+    <div className="planet-shell min-h-dvh flex flex-col md:flex-row">
       <aside className="hidden md:flex w-44 flex-col gap-2 p-4 border-r border-outline-variant">
         <p className="px-3 py-2 text-sm text-on-surface-variant">伴语星球</p>
         {ITEMS.map((item) => (
@@ -20,7 +20,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             key={item.href}
             href={item.href}
             className={`h-10 px-3 rounded-xl flex items-center ${
-              path === item.href ? "bg-secondary-container bg-surface-container-high text-primary" : ""
+              path === item.href ? "bg-surface-container-high text-primary" : "text-on-surface-variant"
             }`}
           >
             {item.label}
@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         ))}
       </aside>
       <div className="flex-1 pb-20 md:pb-0">{children}</div>
-      <nav className="md:hidden fixed bottom-0 inset-x-0 h-16 bg-surface-container flex border-t border-outline-variant">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 h-16 flex border-t border-outline-variant">
         {ITEMS.map((item) => (
           <Link
             key={item.href}

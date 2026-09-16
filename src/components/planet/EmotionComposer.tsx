@@ -45,7 +45,7 @@ export function EmotionComposer({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div className="flex flex-wrap gap-2">
         {KINDS.map((k) => (
           <Chip key={k.kind} selected={kind === k.kind} onClick={() => setKind(k.kind)}>
@@ -69,7 +69,7 @@ export function EmotionComposer({
           </button>
         ))}
       </div>
-      <Button variant="filled" disabled={busy} onClick={submit}>
+      <Button variant="filled" className="w-full" disabled={busy} onClick={submit}>
         留下这一刻
       </Button>
     </div>
