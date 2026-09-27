@@ -1,14 +1,16 @@
 "use client";
 
 import { CoverScreen } from "@/components/cover/CoverScreen";
+import { DollSelectScreen } from "@/components/doll/DollSelectScreen";
 import { MoodSelectScreen } from "@/components/mood/MoodSelectScreen";
+import { setDoll } from "@/lib/doll/dolls";
 import { setMoodCompanion } from "@/lib/mood/companion";
 import { ensureDeviceVault } from "@/lib/storage/vault";
 import { useEffect, useState } from "react";
 
 const COVER_SESSION_KEY = "banyu-cover-entered";
 
-type Gate = "cover" | "mood" | "app";
+type Gate = "cover" | "mood" | "doll" | "app";
 
 export function CoverGate({ children }: { children: React.ReactNode }) {
   const [gate, setGate] = useState<Gate>("cover");
@@ -42,6 +44,17 @@ export function CoverGate({ children }: { children: React.ReactNode }) {
       <MoodSelectScreen
         onConfirm={(id) => {
           setMoodCompanion(id);
+          setGate("doll");
+        }}
+      />
+    );
+  }
+
+  if (gate === "doll") {
+    return (
+      <DollSelectScreen
+        onConfirm={(id) => {
+          setDoll(id);
           sessionStorage.setItem(COVER_SESSION_KEY, "1");
           setGate("app");
         }}

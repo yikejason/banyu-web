@@ -1,12 +1,11 @@
 "use client";
 
-import { EmotionComposer } from "@/components/planet/EmotionComposer";
 import { PlanetView } from "@/components/planet/PlanetView";
 import { Starfield } from "@/components/planet/Starfield";
-import { TemperamentForm } from "@/components/temperament/TemperamentForm";
 import { listEmotions } from "@/lib/emotion/repository";
 import { mapEmotion } from "@/lib/emotion/mapEmotion";
 import type { EmotionRecord } from "@/lib/emotion/types";
+import { dollById, getDoll, type DollId } from "@/lib/doll/dolls";
 import { companionById, getMoodCompanion, type MoodCompanionId } from "@/lib/mood/companion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -15,9 +14,11 @@ export default function HomePage() {
   const [current, setCurrent] = useState<EmotionRecord | null>(null);
   const [history, setHistory] = useState<EmotionRecord[]>([]);
   const [companionId, setCompanionId] = useState<MoodCompanionId | null>(null);
+  const [dollId, setDollId] = useState<DollId | null>(null);
 
   useEffect(() => {
     setCompanionId(getMoodCompanion());
+    setDollId(getDoll());
     listEmotions().then((list) => {
       setHistory(list);
       setCurrent(list[0] ?? null);
@@ -25,6 +26,7 @@ export default function HomePage() {
   }, []);
 
   const figure = companionId ? companionById(companionId) : null;
+  const doll = dollId ? dollById(dollId) : null;
   const visual =
     current?.visual ??
     mapEmotion({ intensity: 3, kind: figure?.kind ?? "unspoken" });
@@ -44,8 +46,8 @@ export default function HomePage() {
         </header>
         <PlanetView
           visual={visual}
-          figureSrc={figure?.src}
-          figureLabel={figure?.label}
+          figureSrc={doll?.src ?? figure?.src}
+          figureLabel={doll?.label ?? figure?.label}
           traces={history.slice(0, 8).map((record) => ({
             id: record.id,
             hue: record.visual.hue,
@@ -57,20 +59,6 @@ export default function HomePage() {
             if (next) setCurrent(next);
           }}
         />
-        <section className="planet-glass relative z-10 -mt-4 p-5">
-          <EmotionComposer
-            onSaved={(record) => {
-              setCurrent(record);
-              setHistory((h) => [record, ...h]);
-            }}
-          />
-        </section>
-        <details className="planet-glass px-4 py-3">
-          <summary className="cursor-pointer text-sm text-on-surface-variant">性情底色</summary>
-          <div className="pt-3">
-            <TemperamentForm compact />
-          </div>
-        </details>
       </div>
     </main>
   );

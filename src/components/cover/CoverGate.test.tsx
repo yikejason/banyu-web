@@ -31,7 +31,7 @@ test("开始连接 opens mood select instead of the app", async () => {
   expect(screen.queryByText("inside")).toBeNull();
 });
 
-test("confirming a companion leaves the gate and shows the app", async () => {
+test("confirming a companion and a doll leaves the gate and shows the app", async () => {
   const user = userEvent.setup();
   render(
     <CoverGate>
@@ -41,6 +41,8 @@ test("confirming a companion leaves the gate and shows the app", async () => {
 
   await user.click(await screen.findByRole("button", { name: "开始连接" }));
   await user.click(await screen.findByRole("button", { name: /暖光/ }));
+  await user.click(screen.getByRole("button", { name: "确认选择" }));
+  await user.click(await screen.findByRole("button", { name: /鎏金/ }));
   await user.click(screen.getByRole("button", { name: "确认选择" }));
   expect(await screen.findByText("inside")).toBeTruthy();
 });
