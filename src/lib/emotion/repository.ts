@@ -1,4 +1,4 @@
-import { listRecords, putRecord } from "@/lib/storage/vault";
+import { deleteRecord, listRecords, putRecord } from "@/lib/storage/vault";
 import { mapEmotion } from "./mapEmotion";
 import type { EmotionInput, EmotionRecord } from "./types";
 
@@ -21,4 +21,10 @@ export async function listEmotions(): Promise<EmotionRecord[]> {
 export async function getEmotion(id: string): Promise<EmotionRecord | null> {
   const all = await listEmotions();
   return all.find((e) => e.id === id) ?? null;
+}
+
+export async function deleteEmotions(ids: string[]): Promise<void> {
+  for (const id of ids) {
+    await deleteRecord("emotion", id);
+  }
 }
