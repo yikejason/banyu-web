@@ -31,7 +31,7 @@ export function JournalEditor({ id }: { id?: string }) {
     if (id) await updateJournal(id, { title, body, emotionId: emotionId || undefined });
     else {
       const created = await createJournal({ title, body, emotionId: emotionId || undefined });
-      router.replace(`/journal/${created.id}`);
+      router.replace(`/journal/v?id=${created.id}`);
       return;
     }
     router.push("/journal");

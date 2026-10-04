@@ -4,6 +4,8 @@ import type { NextConfig } from "next";
 const apiBase = process.env.API_BASE;
 
 const nextConfig: NextConfig = {
+  // 纯静态导出（out/），由 nginx 托管；/api 由 nginx 分流到独立后端
+  output: "export",
   poweredByHeader: false,
   async rewrites() {
     if (!apiBase) return [];

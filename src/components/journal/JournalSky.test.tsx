@@ -15,5 +15,5 @@ const entry: JournalEntry = {
 test("journal entries appear as named stars that open the entry", () => {
   render(<JournalSky items={[entry]} />);
   const star = screen.getByRole("link", { name: "今晚" });
-  expect(star.getAttribute("href")).toBe("/journal/j1");
+  expect(star.getAttribute("href")).toBe("/journal/v?id=j1");
 });

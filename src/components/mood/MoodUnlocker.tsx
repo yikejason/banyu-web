@@ -11,43 +11,48 @@ import {
 } from "@/lib/mood/share";
 import { useEffect, useRef, useState } from "react";
 
-export function MoodUnlocker({ shareCode }: { shareCode: string }) {
+export function MoodUnlocker() {
+  const [shareCode, setShareCode] = useState("");
   const [mood, setMood] = useState<UnlockedMood | null>(null);
   const [passcode, setPasscode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const bootstrapped = useRef(false);
 
-  async function verify(code: string) {
+  async function verify(code: string, codePath = shareCode) {
     setBusy(true);
     setError("");
-    const res = await verifyMoodPasscode(shareCode, code);
+    const res = await verifyMoodPasscode(codePath, code);
     setBusy(false);
     if (!res.ok) {
       setError(res.error);
       return;
     }
-    saveUnlockedMood(shareCode, res.mood);
+    saveUnlockedMood(codePath, res.mood);
     setMood(res.mood);
   }
 
   useEffect(() => {
     if (bootstrapped.current) return;
     bootstrapped.current = true;
-    const cached = loadUnlockedMood(shareCode);
+    const params = new URLSearchParams(window.location.search);
+    const codePath = params.get("c") ?? "";
+    if (!codePath) return;
+    setShareCode(codePath);
+    const cached = loadUnlockedMood(codePath);
     if (cached) {
       setMood(cached);
       return;
     }
     // ?code=6688 一键直达：自动校验，成功后把口令从地址栏抹掉
-    const code = new URLSearchParams(window.location.search).get("code");
+    const code = params.get("code");
     if (code && PASSCODE_RE.test(code)) {
       setPasscode(code);
       window.history.replaceState(null, "", window.location.pathname);
-      void verify(code);
+      void verify(code, codePath);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shareCode]);
+  }, []);
 
   if (mood) {
     return (

@@ -36,7 +36,7 @@ export function JournalSky({ items }: { items: JournalEntry[] }) {
         return (
           <Link
             key={item.id}
-            href={`/journal/${item.id}`}
+            href={`/journal/v?id=${item.id}`}
             title={`${item.title} · ${date}`}
             className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
             style={{ left: `${star.left}%`, top: `${star.top}%` }}

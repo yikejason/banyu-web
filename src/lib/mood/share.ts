@@ -12,7 +12,7 @@ export function randomPasscode(length = 4): string {
 }
 
 export function buildMoodUrl(origin: string, shareCode: string): string {
-  return `${origin}/mood/${shareCode}`;
+  return `${origin}/mood/v?c=${shareCode}`;
 }
 
 export async function createAnonymousMood(input: {
