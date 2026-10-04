@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:static": "API_BASE= next build",
+    "deploy": "bash deploy/deploy.sh",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run"
