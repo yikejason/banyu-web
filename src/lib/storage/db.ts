@@ -1,6 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 
-export type RecordKind = "emotion" | "journal" | "temperament" | "shareLocal";
+export type RecordKind = "emotion" | "journal" | "temperament";
 
 export type EncryptedRecord = {
   id: string;

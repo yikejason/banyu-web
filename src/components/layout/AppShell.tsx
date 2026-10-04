@@ -7,7 +7,7 @@ const ITEMS = [
   { href: "/", label: "星球" },
   { href: "/emotions", label: "情绪" },
   { href: "/journal", label: "日记" },
-  { href: "/share/manage", label: "分享" },
+  { href: "/mood", label: "分享" },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
