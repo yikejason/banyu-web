@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 
 const ITEMS = [
   { href: "/", label: "星球" },
-  { href: "/emotions", label: "情绪" },
   { href: "/journal", label: "日记" },
   { href: "/mood", label: "分享" },
 ];

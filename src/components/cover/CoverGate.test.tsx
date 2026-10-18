@@ -42,7 +42,7 @@ test("confirming a companion and a doll leaves the gate and shows the app", asyn
   await user.click(await screen.findByRole("button", { name: "开始连接" }));
   await user.click(await screen.findByRole("button", { name: /暖光/ }));
   await user.click(screen.getByRole("button", { name: "确认选择" }));
-  await user.click(await screen.findByRole("button", { name: /鎏金/ }));
+  await user.click(await screen.findByRole("button", { name: /澄光/ }));
   await user.click(screen.getByRole("button", { name: "确认选择" }));
   expect(await screen.findByText("inside")).toBeTruthy();
 });

@@ -7,7 +7,6 @@ import { mapEmotion } from "@/lib/emotion/mapEmotion";
 import type { EmotionRecord } from "@/lib/emotion/types";
 import { dollById, getDoll, type DollId } from "@/lib/doll/dolls";
 import { companionById, getMoodCompanion, type MoodCompanionId } from "@/lib/mood/companion";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function HomePage() {
@@ -39,10 +38,6 @@ export default function HomePage() {
           <p className="text-[11px] tracking-[0.42em] text-on-surface-variant">伴语</p>
           <h1 className="mt-1 text-2xl font-medium">伴语星球</h1>
           <p className="mt-1 text-sm text-on-surface-variant">把感受留下，不必起一个准确的名字。</p>
-          <Link href="/emotions" className="mt-3 inline-flex items-center gap-1 text-sm text-primary">
-            我的情绪足迹
-            <span aria-hidden>→</span>
-          </Link>
         </header>
         <PlanetView
           visual={visual}
