@@ -2,7 +2,7 @@
 
 import { Starfield } from "@/components/planet/Starfield";
 import { DOLL_OPTIONS, type DollId } from "@/lib/doll/dolls";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 
 export function DollSelectScreen({
   onConfirm,
@@ -15,7 +15,7 @@ export function DollSelectScreen({
     <main className="planet-scene relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6">
       <Starfield />
       <div className="relative z-10 flex w-full max-w-[400px] flex-col items-center">
-        <h1 className="text-center text-[1.7rem] font-medium tracking-wide">请选择你的能量</h1>
+        <h1 className="text-center text-[1.7rem] font-medium tracking-wide">请选择你的心境能量</h1>
         <section className="planet-glass mt-7 w-full px-5 pb-8 pt-7 text-center">
           <div className="flex items-end justify-center gap-2">
             {DOLL_OPTIONS.map((doll) => {
@@ -28,11 +28,21 @@ export function DollSelectScreen({
                   className={`mood-figure flex w-[31%] flex-col items-center rounded-3xl px-1 pb-3 pt-4 transition ${active ? "mood-figure-on" : "hover:bg-white/5"
                     }`}
                 >
-                  <img
-                    src={doll.src}
-                    alt=""
-                    className="h-28 w-auto object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)]"
-                  />
+                  <span
+                    className="orb-halo relative isolate block h-28 w-28"
+                    style={{ "--ring": doll.ring } as CSSProperties}
+                  >
+                    <span className="orb-ring orb-ring-back" aria-hidden />
+                    <span className="orb-ring orb-ring-outer" aria-hidden />
+                    <img
+                      src={doll.src}
+                      alt=""
+                      className="energy-orb absolute inset-0 z-[1] h-full w-full object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)]"
+                    />
+                    <span className="orb-ring orb-ring-front" aria-hidden />
+                    <span className="orb-spark orb-spark-1" aria-hidden />
+                    <span className="orb-spark orb-spark-2" aria-hidden />
+                  </span>
                   <span className="mt-2 text-base font-medium">{doll.label}</span>
                   <span className="text-xs text-on-surface-variant">{doll.hint}</span>
                 </button>
@@ -40,7 +50,7 @@ export function DollSelectScreen({
             })}
           </div>
           <p className="mt-6 text-sm leading-relaxed text-on-surface-variant">
-            选定后，它会一直站在你的伴语星球上
+            选定后你会被对应属性的光晕完整笼罩
           </p>
         </section>
         <button

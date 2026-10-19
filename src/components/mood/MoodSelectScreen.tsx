@@ -15,10 +15,7 @@ export function MoodSelectScreen({
     <main className="planet-scene relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6">
       <Starfield />
       <div className="relative z-10 flex w-full max-w-[400px] flex-col items-center">
-        <h1 className="text-center text-[1.7rem] font-medium tracking-wide">请选择你的心情小人</h1>
-        <p className="mt-4 inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-sm text-on-surface-variant">
-          今天你的心情怎么样？
-        </p>
+        <h1 className="text-center text-[1.7rem] font-medium tracking-wide">请选择你的性别</h1>
         <section className="planet-glass mt-7 w-full px-5 pb-8 pt-7 text-center">
           <div className="flex items-end justify-center gap-3">
             {MOOD_COMPANIONS.map((companion) => {
@@ -28,9 +25,8 @@ export function MoodSelectScreen({
                   key={companion.id}
                   type="button"
                   onClick={() => setSelected(companion.id)}
-                  className={`mood-figure flex w-[46%] flex-col items-center rounded-3xl px-2 pb-3 pt-4 transition ${
-                    active ? "mood-figure-on" : "hover:bg-white/5"
-                  }`}
+                  className={`mood-figure flex w-[46%] flex-col items-center rounded-3xl px-2 pb-3 pt-4 transition ${active ? "mood-figure-on" : "hover:bg-white/5"
+                    }`}
                 >
                   <img
                     src={companion.src}
@@ -43,9 +39,6 @@ export function MoodSelectScreen({
               );
             })}
           </div>
-          <p className="mt-6 text-sm leading-relaxed text-on-surface-variant">
-            选定后，你的情绪状态将会在伴语星球展示
-          </p>
         </section>
         <button
           type="button"

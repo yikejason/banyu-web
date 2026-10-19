@@ -43,6 +43,7 @@ export default function HomePage() {
           visual={visual}
           figureSrc={doll?.src ?? figure?.src}
           figureLabel={doll?.label ?? figure?.label}
+          figureRing={doll?.ring}
           traces={history.slice(0, 8).map((record) => ({
             id: record.id,
             hue: record.visual.hue,

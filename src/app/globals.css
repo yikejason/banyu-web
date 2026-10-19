@@ -145,11 +145,6 @@ body {
   filter: blur(18px);
 }
 
-.planet-ring {
-  animation: planet-spin 70s linear infinite;
-  transform-origin: 120px 128px;
-}
-
 @keyframes planet-twinkle {
   0%,
   100% {
@@ -172,13 +167,101 @@ body {
   }
 }
 
-@keyframes planet-spin {
+/* 能量球自转：用独立 rotate 属性而非 transform，避免顶掉元素上已有的 transform（如 -translate-x-1/2） */
+@keyframes energy-spin {
   from {
-    transform: rotate(0deg);
+    rotate: 0deg;
   }
   to {
-    transform: rotate(360deg);
+    rotate: 360deg;
   }
+}
+
+.energy-orb {
+  animation: energy-spin 18s linear infinite;
+}
+
+/* 选中卡片里的球加速旋转，作为选中反馈 */
+.mood-figure-on .energy-orb {
+  animation-duration: 8s;
+}
+
+/* 能量球光环：前后两段半环制造“环绕穿过”的立体感，外环更淡、倾角错开，星点点缀 */
+.orb-halo {
+  --ring: #a89cff;
+}
+
+.orb-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 130%;
+  height: 40%;
+  translate: -50% -50%;
+  rotate: -18deg;
+  border: 2px solid color-mix(in srgb, var(--ring) 68%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--ring) 45%, transparent),
+    inset 0 0 12px color-mix(in srgb, var(--ring) 28%, transparent);
+  animation: orb-ring-pulse 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* 上半段，藏在球后 */
+.orb-ring-back {
+  z-index: 0;
+  clip-path: inset(0 0 50% 0);
+}
+
+/* 下半段，压在球前 */
+.orb-ring-front {
+  z-index: 2;
+  clip-path: inset(50% 0 0 0);
+}
+
+/* 更淡的外环，整环压在球前 */
+.orb-ring-outer {
+  width: 148%;
+  height: 30%;
+  rotate: -32deg;
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--ring) 32%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ring) 20%, transparent);
+  z-index: 2;
+  animation-delay: 1.4s;
+}
+
+@keyframes orb-ring-pulse {
+  0%,
+  100% {
+    opacity: 0.62;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.orb-spark {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--ring) 60%, transparent);
+  animation: planet-twinkle 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.orb-spark-1 {
+  left: -8%;
+  top: 28%;
+}
+
+.orb-spark-2 {
+  right: -6%;
+  bottom: 24%;
+  animation-delay: 1.6s;
 }
 
 .cover-scene {
@@ -370,6 +453,9 @@ body {
   .cover-connect::before,
   .planet-star,
   .cover-nebula,
+  .energy-orb,
+  .orb-ring,
+  .orb-spark,
   .m3-toast {
     animation: none;
   }

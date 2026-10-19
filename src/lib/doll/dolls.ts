@@ -5,10 +5,11 @@ export const DOLL_OPTIONS: {
   label: string;
   hint: string;
   src: string;
+  ring: string;
 }[] = [
-    { id: "liujin", label: "澄光", hint: "（常态）", src: "/dolls/liujin.png" },
-    { id: "feiyan", label: "蓝漠", hint: "（忧伤）", src: "/dolls/feiyan.png" },
-    { id: "jingchuan", label: "赤焰", hint: "（愤怒）", src: "/dolls/jingchuan.png" },
+    { id: "liujin", label: "澄光", hint: "（常态）", src: "/dolls/liujin.png", ring: "#a89cff" },
+    { id: "feiyan", label: "蓝漠", hint: "（忧伤）", src: "/dolls/feiyan.png", ring: "#7ec8ff" },
+    { id: "jingchuan", label: "赤焰", hint: "（愤怒）", src: "/dolls/jingchuan.png", ring: "#ffb38a" },
   ];
 
 const KEY = "banyu-doll";
