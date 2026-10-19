@@ -1,3 +1,4 @@
+import { randomUuid } from "@/lib/crypto/uuid";
 import { getRecord, listRecords, putRecord } from "@/lib/storage/vault";
 import type { JournalEntry } from "./types";
 
@@ -14,7 +15,7 @@ export async function createJournal(input: {
 }): Promise<JournalEntry> {
   const now = new Date().toISOString();
   const entry: JournalEntry = {
-    id: crypto.randomUUID(),
+    id: randomUuid(),
     createdAt: now,
     updatedAt: now,
     title: titleFrom(input.body, input.title),

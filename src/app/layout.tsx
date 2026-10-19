@@ -20,7 +20,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN" className={`${noto.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans">
+      {/* suppressHydrationWarning：Grammarly 等浏览器插件会在 hydration 前往 body 上注入 data-gr-* 属性，属外部干扰，压制即可 */}
+      <body className="min-h-full font-sans" suppressHydrationWarning>
         <ClientShell>{children}</ClientShell>
       </body>
     </html>

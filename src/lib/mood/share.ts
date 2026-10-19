@@ -1,3 +1,5 @@
+import { randomUuid } from "@/lib/crypto/uuid";
+
 export const PASSCODE_RE = /^\d{4,6}$/;
 
 export type UnlockedMood = {
@@ -22,7 +24,7 @@ const CLIENT_ID_KEY = "banyu-client-id";
 export function getClientId(): string {
   let id = localStorage.getItem(CLIENT_ID_KEY);
   if (!id || !/^[A-Za-z0-9_-]{8,64}$/.test(id)) {
-    id = crypto.randomUUID();
+    id = randomUuid();
     localStorage.setItem(CLIENT_ID_KEY, id);
   }
   return id;

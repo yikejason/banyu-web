@@ -1,10 +1,11 @@
+import { randomUuid } from "@/lib/crypto/uuid";
 import { deleteRecord, listRecords, putRecord } from "@/lib/storage/vault";
 import { mapEmotion } from "./mapEmotion";
 import type { EmotionInput, EmotionRecord } from "./types";
 
 export async function saveEmotion(input: EmotionInput): Promise<EmotionRecord> {
   const record: EmotionRecord = {
-    id: crypto.randomUUID(),
+    id: randomUuid(),
     createdAt: new Date().toISOString(),
     input,
     visual: mapEmotion(input),

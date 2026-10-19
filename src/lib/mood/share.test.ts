@@ -25,6 +25,19 @@ test("getClientId 覆盖不合规的存量值", () => {
   expect(getClientId()).toMatch(/^[A-Za-z0-9_-]{8,64}$/);
 });
 
+test("getClientId 在非安全上下文（crypto.randomUUID 不存在，HTTP + IP 访问）下不崩", () => {
+  const proto = Object.getPrototypeOf(crypto);
+  const desc = Object.getOwnPropertyDescriptor(proto, "randomUUID");
+  Object.defineProperty(proto, "randomUUID", { ...desc, value: undefined });
+  try {
+    const id = getClientId();
+    expect(id).toMatch(/^[A-Za-z0-9_-]{8,64}$/);
+    expect(localStorage.getItem("banyu-client-id")).toBe(id);
+  } finally {
+    Object.defineProperty(proto, "randomUUID", desc);
+  }
+});
+
 test("randomPasscode 只含数字且保留前导零", () => {
   for (let i = 0; i < 50; i++) {
     expect(randomPasscode()).toMatch(/^\d{4}$/);
