@@ -10,9 +10,9 @@ export default function JournalPage() {
   const router = useRouter();
   const toast = useToast();
   return (
-    <NightScene title="私密日记" subtitle="每一篇都是夜空里的一颗星。">
+    <NightScene title="星语日记" subtitle="每一颗心事，都有星光回应。">
       <JournalList />
-      <div className="fixed bottom-24 right-4 z-20 flex gap-4 md:bottom-8">
+      <div className="fixed bottom-24 right-4 z-20 flex gap-4 md:bottom-8" style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
         <FAB label="保存到本地" onClick={() => toast("已保存到本地")} />
         <FAB label="写日记" onClick={() => router.push("/journal/new")} />
       </div>
