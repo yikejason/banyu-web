@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:static": "API_BASE= next build",
+    "build:static": "cross-env API_BASE= next build",
     "deploy": "bash deploy/deploy.sh",
     "start": "next start",
     "lint": "eslint",
@@ -25,6 +25,7 @@
     "@types/node": "^20",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "fake-indexeddb": "^6.2.5",
