@@ -187,41 +187,41 @@ body {
 }
 
 /* 能量球光环：前后两段半环制造“环绕穿过”的立体感，外环更淡、倾角错开，星点点缀 */
-.orb-halo {
+/*.orb-halo {
   --ring: #a89cff;
-}
+}*/
 
-.orb-ring {
+/*.orb-ring {
   position: absolute;
   left: 50%;
   top: 50%;
   width: 130%;
   height: 40%;
   translate: -50% -50%;
-/*  rotate: -18deg;*/
+!*  rotate: -18deg;*!
   border: 2px solid color-mix(in srgb, var(--ring) 68%, transparent);
   border-radius: 50%;
   box-shadow:
     0 0 12px color-mix(in srgb, var(--ring) 45%, transparent),
     inset 0 0 12px color-mix(in srgb, var(--ring) 28%, transparent);
-/*  animation: orb-ring-pulse 4.5s ease-in-out infinite;*/
+!*  animation: orb-ring-pulse 4.5s ease-in-out infinite;*!
   pointer-events: none;
-}
+}*/
 
 /* 上半段，藏在球后 */
-.orb-ring-back {
+/*.orb-ring-back {
   z-index: 0;
   clip-path: inset(0 0 50% 0);
-}
+}*/
 
 /* 下半段，压在球前 */
-.orb-ring-front {
+/*.orb-ring-front {
   z-index: 2;
   clip-path: inset(50% 0 0 0);
-}
+}*/
 
 /* 更淡的外环，整环压在球前 */
-.orb-ring-outer {
+/*.orb-ring-outer {
   width: 148%;
   height: 30%;
   rotate: -32deg;
@@ -230,7 +230,95 @@ body {
   box-shadow: 0 0 8px color-mix(in srgb, var(--ring) 20%, transparent);
   z-index: 2;
   animation-delay: 1.4s;
+}*/
+
+
+
+/* 舞台：设定倾斜角 */
+.orb-halo {
+  --ring: #a89cff;
+  position: relative;
+  /* 将整个舞台倾斜，制造环绕倾角 */
+  transform: rotate(-15deg);
 }
+
+/* 1. 球体：24s自转 */
+@keyframes energy-spin {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+}
+.energy-orb {
+  animation: energy-spin 24s linear infinite;
+}
+.mood-figure-on .energy-orb {
+  animation-duration: 12s;
+}
+
+/* 2. 光环公转：18s，绕着球体转 */
+@keyframes ring-spin {
+  from { transform: rotateZ(0deg); }
+  to { transform: rotateZ(360deg); }
+}
+
+/* 光环基础形状：一个压扁的椭圆，模拟 3D 透视 */
+.orb-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 140%;
+  height: 45%; /* 压扁，形成透视感 */
+  margin-left: -70%;
+  margin-top: -22.5%;
+  border-radius: 50%;
+  pointer-events: none;
+  /* 管状厚度：用 box-shadow 模拟 */
+  border: 2px solid color-mix(in srgb, var(--ring) 70%, transparent);
+  box-shadow:
+          0 0 12px color-mix(in srgb, var(--ring) 40%, transparent),
+          inset 0 0 10px color-mix(in srgb, var(--ring) 30%, transparent);
+
+  /* 核心：绕着中心点公转 */
+  animation: ring-spin 18s linear infinite;
+  transform-origin: center center;
+}
+
+/* 用伪元素做“远侧淡、近侧亮”的虚实效果 */
+.orb-ring::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  /* 关键：上半部分（远侧）透明，下半部分（近侧）高亮 */
+  background: linear-gradient(180deg,
+  transparent 20%,
+  color-mix(in srgb, var(--ring) 10%, transparent) 50%,
+  color-mix(in srgb, var(--ring) 80%, transparent) 100%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* 处理前后层级，防止穿模 */
+.orb-ring-back {
+  z-index: 0;
+}
+.orb-ring-front {
+  z-index: 2;
+}
+/* 外环稍微放大，转速错开 */
+.orb-ring-outer {
+  width: 155%;
+  height: 50%;
+  margin-left: -77.5%;
+  margin-top: -25%;
+  border-width: 1px;
+  opacity: 0.5;
+  animation: ring-spin 26s linear infinite reverse;
+  z-index: 2;
+}
+
+
+
+
 
 @keyframes orb-ring-pulse {
   0%,
