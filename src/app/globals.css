@@ -168,25 +168,23 @@ body {
 }
 
 /* 能量球自转：用独立 rotate 属性而非 transform，避免顶掉元素上已有的 transform（如 -translate-x-1/2） */
-/*@keyframes energy-spin {
+@keyframes energy-spin {
   from {
     rotate: 0deg;
   }
   to {
     rotate: 360deg;
   }
-}*/
-
-/*.energy-orb {
-  *//* animation: energy-spin 18s linear infinite; <- 删掉这行 *//*
-  transition: transform 0.3s ease; *//* 加上这个，留作选中时的放大反馈 *//*
 }
 
-*//* 选中卡片里的球加速旋转，作为选中反馈 *//*
+.energy-orb {
+  animation: energy-spin 18s linear infinite;
+}
+
+/* 选中卡片里的球加速旋转，作为选中反馈 */
 .mood-figure-on .energy-orb {
-  *//* animation-duration: 8s; <- 删掉这行 *//*
-    transform: scale(1.1); *//* 选中时球体微微放大即可 *//*
-}*/
+  animation-duration: 8s;
+}
 
 /* 能量球光环：前后两段半环制造“环绕穿过”的立体感，外环更淡、倾角错开，星点点缀 */
 .orb-halo {
@@ -473,164 +471,3 @@ body {
   box-shadow: 0 0 24px color-mix(in srgb, var(--md-sys-color-primary) 32%, transparent);
 }
 
-
-
-
-/* =======================================================
-   🌟 覆盖动画：三种心境能量，三种 3D 环绕轨迹
-   ======================================================= */
-
-/* 0. 基础设置：开启 3D 透视，覆盖原本的 rotate */
-.orb-halo {
-  perspective: 600px; /* 开启 3D 透视空间 */
-  --ring: #a89cff;    /* 默认颜色兜底 */
-}
-
-/* 清除原来基础的 -18deg 和呼吸动画，改由各自专属动画控制 */
-.orb-ring {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 130%;
-  height: 40%;
-  translate: -50% -50%;
-  rotate: 0deg;
-  border: 2px solid color-mix(in srgb, var(--ring) 68%, transparent);
-  border-radius: 50%;
-  box-shadow:
-    0 0 12px color-mix(in srgb, var(--ring) 45%, transparent),
-    inset 0 0 12px color-mix(in srgb, var(--ring) 28%, transparent);
-  pointer-events: none;
-  animation: none !important;
-}
-
-/* 确保球体在中间层，不遮挡前面的环 */
-.energy-orb {
-  animation: none !important; /* 停掉图片本身的死板自转 */
-  transition: transform 0.3s ease, filter 0.3s ease;
-}
-
-/* 选中时的状态：球体微微放大，发光增强（替代加速旋转） */
-.mood-figure-on .energy-orb {
-  transform: scale(1.08);
-  filter: brightness(1.2) drop-shadow(0 0 15px var(--ring));
-}
-
-
-/* =======================================================
-   🌟 针对性 3D 动画配置
-   ======================================================= */
-
-/* -------------------------------------------------------
-   1. 澄光 (liujin) —— 土星斜环，优雅稳定
-   ------------------------------------------------------- */
-.orb-liujin .orb-ring-back {
-  transform: rotateX(65deg) rotateZ(0deg);
-  animation: spinTilted 8s linear infinite !important;
-  /* 制造 3D 空间前后的亮暗变化 */
-  opacity: 0.6;
-}
-.orb-liujin .orb-ring-front {
-  transform: rotateX(65deg) rotateZ(180deg);
-  animation: spinTilted 8s linear infinite !important;
-  opacity: 1;
-}
-.orb-liujin .orb-ring-outer {
-  transform: rotateX(75deg) rotateY(10deg) rotateZ(0deg);
-  animation: spinTiltedReverse 12s linear infinite !important;
-  opacity: 0.4;
-}
-
-/* -------------------------------------------------------
-   2. 蓝漠 (feiyan) —— 水平光带，缓慢逆时针水波感
-   ------------------------------------------------------- */
-.orb-feiyan .orb-ring-back {
-  transform: rotateX(75deg) rotateZ(0deg);
-  animation: spinFlatReverse 15s ease-in-out infinite !important;
-  opacity: 0.5;
-}
-.orb-feiyan .orb-ring-front {
-  transform: rotateX(75deg) rotateZ(180deg);
-  animation: spinFlatReverse 15s ease-in-out infinite !important;
-  opacity: 0.9;
-}
-.orb-feiyan .orb-ring-outer {
-  transform: rotateX(80deg) rotateZ(0deg);
-  animation: spinFlat 18s linear infinite !important;
-  opacity: 0.3;
-}
-/* 蓝漠的球体加上轻微的“呼吸下沉” */
-.orb-feiyan .energy-orb {
-  animation: sinkFloat 5s ease-in-out infinite !important;
-}
-
-/* -------------------------------------------------------
-   3. 赤焰 (jingchuan) —— 3D 双轨交叉，狂躁高转
-   ------------------------------------------------------- */
-.orb-jingchuan .orb-ring-back {
-  transform: rotateX(60deg) rotateY(40deg) rotateZ(0deg);
-  animation: spinCrossFast 2s linear infinite !important;
-  border-width: 2px;
-  opacity: 0.8;
-}
-.orb-jingchuan .orb-ring-front {
-  transform: rotateX(60deg) rotateY(40deg) rotateZ(180deg);
-  animation: spinCrossFast 2s linear infinite !important;
-  border-width: 2px;
-  opacity: 1;
-}
-.orb-jingchuan .orb-ring-outer {
-  transform: rotateX(60deg) rotateY(-40deg) rotateZ(0deg);
-  animation: spinCrossFastReverse 1.5s linear infinite !important;
-  opacity: 0.8;
-}
-/* 赤焰的球体加上高频微颤 */
-.orb-jingchuan .energy-orb {
-  animation: shake 0.15s linear infinite !important;
-}
-
-
-/* =======================================================
-   🌟 关键帧动画定义 (Keyframes)
-   ======================================================= */
-
-/* 倾斜环绕（保持 65 度倾角） */
-@keyframes spinTilted {
-  0%   { transform: rotateX(65deg) rotateZ(0deg); }
-  100% { transform: rotateX(65deg) rotateZ(360deg); }
-}
-@keyframes spinTiltedReverse {
-  0%   { transform: rotateX(75deg) rotateY(10deg) rotateZ(360deg); }
-  100% { transform: rotateX(75deg) rotateY(10deg) rotateZ(0deg); }
-}
-
-/* 扁平水波纹环绕 */
-@keyframes spinFlat {
-  0%   { transform: rotateX(75deg) rotateZ(0deg); }
-  100% { transform: rotateX(75deg) rotateZ(360deg); }
-}
-@keyframes spinFlatReverse {
-  0%   { transform: rotateX(75deg) rotateZ(360deg); }
-  100% { transform: rotateX(75deg) rotateZ(0deg); }
-}
-
-/* 极速 3D 交叉环绕 */
-@keyframes spinCrossFast {
-  0%   { transform: rotateX(60deg) rotateY(40deg) rotateZ(0deg); }
-  100% { transform: rotateX(60deg) rotateY(40deg) rotateZ(360deg); }
-}
-@keyframes spinCrossFastReverse {
-  0%   { transform: rotateX(60deg) rotateY(-40deg) rotateZ(360deg); }
-  100% { transform: rotateX(60deg) rotateY(-40deg) rotateZ(0deg); }
-}
-
-/* 忧伤浮动 / 愤怒颤抖 */
-@keyframes sinkFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(3px); }
-}
-@keyframes shake {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(0.8px, -0.8px) scale(1.02); }
-  100% { transform: translate(0, 0) scale(1); }
-}
