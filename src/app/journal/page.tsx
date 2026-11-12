@@ -24,10 +24,28 @@ export default function JournalPage() {
         <JournalList />
       </NightScene>
         {mounted && (
-            <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-4 md:bottom-8" >
-              <FAB label="保存到本地" onClick={() => toast("已保存到本地")} />
-              <FAB label="写日记" onClick={() => router.push("/journal/new")} />
-            </div>
+            <div
+                className="fixed bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-3 w-[calc(100%-32px)] max-w-[480px] md:bottom-8"
+              >
+                <button
+                  type="button"
+                  onClick={() => toast("已保存到本地")}
+                  className="cover-connect flex-1 min-w-0"
+                >
+                  <span className="relative z-10 block w-full truncate">
+                    保存到本地
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/journal/new")}
+                  className="cover-connect flex-1 min-w-0"
+                >
+                  <span className="relative z-10 block w-full truncate">
+                    编写日记
+                  </span>
+                </button>
+              </div>
         )}
     </div>
   );
