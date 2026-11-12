@@ -29,7 +29,8 @@ export function DollSelectScreen({
                     }`}
                 >
                   <span
-                    className="orb-halo relative isolate block h-28 w-28"
+//                     className="orb-halo relative isolate block h-28 w-28"
+                    className={`orb-halo orb-${doll.id} relative isolate block h-28 w-28`}
                     style={{ "--ring": doll.ring } as CSSProperties}
                   >
                     <span className="orb-ring orb-ring-back" aria-hidden />
