@@ -25,7 +25,7 @@ export default function JournalPage() {
       </NightScene>
         {mounted && (
           <div
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-3 md:bottom-8"
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-6 md:bottom-8"
             style={{ width: "auto" }}
           >
             <button
@@ -36,8 +36,8 @@ export default function JournalPage() {
                 width: "auto",
                 flex: "none",
                 minWidth: "0",
-                paddingTop: "5px",
-                paddingBottom: "5px",
+                paddingTop: "3px",
+                paddingBottom: "3px",
                 paddingLeft: "20px",
                 paddingRight: "20px",
                 fontSize: "13px",
@@ -57,8 +57,8 @@ export default function JournalPage() {
                 width: "auto",
                 flex: "none",
                 minWidth: "0",
-                paddingTop: "5px",
-                paddingBottom: "5px",
+                paddingTop: "3px",
+                paddingBottom: "3px",
                 paddingLeft: "20px",
                 paddingRight: "20px",
                 fontSize: "13px",
