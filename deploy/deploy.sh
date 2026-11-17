@@ -30,6 +30,10 @@ if [ ! -d out ]; then
   exit 1
 fi
 
+# 写入发版版本号：客户端 DeployVersionCheck 轮询对比，发现新版本自动刷新进最新页
+echo "==> 写入版本号 out/version.json ..."
+node -e "require('fs').writeFileSync('out/version.json', JSON.stringify({ v: Date.now() }))"
+
 echo "==> 上传到 root@${SERVER_IP}:${REMOTE_DIR}/ ..."
 # rsync 不建父目录，先确保远端目录存在；--delete 保证远端与 out/ 完全一致
 ssh "root@${SERVER_IP}" "mkdir -p ${REMOTE_DIR}"

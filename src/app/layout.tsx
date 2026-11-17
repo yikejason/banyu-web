@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_SC } from "next/font/google";
 import { ClientShell } from "@/components/layout/ClientShell";
+import { DeployVersionCheck } from "@/components/layout/DeployVersionCheck";
 import "./globals.css";
 
 const noto = Noto_Sans_SC({
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="zh-CN" className={`${noto.variable} h-full antialiased`}>
       {/* suppressHydrationWarning：Grammarly 等浏览器插件会在 hydration 前往 body 上注入 data-gr-* 属性，属外部干扰，压制即可 */}
       <body className="min-h-full font-sans" suppressHydrationWarning>
+        <DeployVersionCheck />
         <ClientShell>{children}</ClientShell>
         {/* ICP 备案合规：全站固定页脚展示备案号，移动端悬在底部 tab 栏上方 */}
         <footer className="pointer-events-none fixed inset-x-0 bottom-[4.5rem] z-30 flex justify-center md:bottom-2">
