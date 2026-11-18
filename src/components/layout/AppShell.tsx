@@ -109,7 +109,7 @@ type TrackConf = {
 /* 三条倾角/尺寸各异的椭圆细线轨道，缠绕在一起 */
 const TRACKS: TrackConf[] = [
   {
-    w: 104, h: 44, tilt: -15, ringFrom: 210, dim: 1,
+    w: 104, h: 44, tilt: -15, ringFrom: 210, dim: 0.88,
     nodes: [15, 105, 195, 285], nodeScale: 1,
     moons: [
       { mult: 1, delay: 0, size: 3.4 },
@@ -119,7 +119,7 @@ const TRACKS: TrackConf[] = [
     moonDurActive: 13, moonDurIdle: 24,
   },
   {
-    w: 86, h: 36, tilt: -24, ringFrom: 30, dim: 0.9,
+    w: 86, h: 36, tilt: -24, ringFrom: 30, dim: 0.8,
     nodes: [70, 250], nodeScale: 0.8,
     moons: [
       { mult: 1, delay: -3.4, size: 2.7 },
@@ -128,7 +128,7 @@ const TRACKS: TrackConf[] = [
     moonDurActive: 17, moonDurIdle: 30,
   },
   {
-    w: 118, h: 30, tilt: -7, ringFrom: 120, dim: 0.6,
+    w: 118, h: 30, tilt: -7, ringFrom: 120, dim: 0.52,
     nodes: [150], nodeScale: 0.7,
     moons: [
       { mult: 1, delay: -9, size: 2.3 },
@@ -137,17 +137,17 @@ const TRACKS: TrackConf[] = [
   },
 ];
 
-/* 光轨细线：两段亮弧 + 自然淡出的透明缺口，非闭合硬圈 */
+/* 光轨细线：两段亮弧 + 自然淡出的透明缺口，非闭合硬圈（亮度压低适配按钮） */
 function ringBackground(from: number): string {
   return `conic-gradient(from ${from}deg,
     transparent 0deg,
-    rgba(255,255,255,0.72) 55deg,
-    rgba(255,255,255,0.95) 85deg,
-    rgba(255,255,255,0.22) 130deg,
+    rgba(255,255,255,0.68) 55deg,
+    rgba(255,255,255,0.88) 85deg,
+    rgba(255,255,255,0.2) 130deg,
     transparent 185deg,
-    rgba(216,172,255,0.5) 245deg,
-    rgba(255,255,255,0.85) 290deg,
-    rgba(255,255,255,0.18) 330deg,
+    rgba(216,172,255,0.46) 245deg,
+    rgba(255,255,255,0.78) 290deg,
+    rgba(255,255,255,0.16) 330deg,
     transparent 360deg)`;
 }
 

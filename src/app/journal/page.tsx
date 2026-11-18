@@ -7,6 +7,162 @@ import { useToast } from "@/components/m3/Toast";
 import { JournalList } from "@/components/journal/JournalList";
 import { NightScene } from "@/components/layout/NightScene";
 
+/* 确定性伪随机：SSR 与客户端生成同一批粒子坐标，避免 hydration 抖动 */
+function mulberry32(seed: number) {
+  let a = seed;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* 二次贝塞尔取点 */
+function quadAt(p0: number[], p1: number[], p2: number[], t: number): [number, number] {
+  const mt = 1 - t;
+  return [
+    mt * mt * p0[0] + 2 * mt * t * p1[0] + t * t * p2[0],
+    mt * mt * p0[1] + 2 * mt * t * p1[1] + t * t * p2[1],
+  ];
+}
+
+/* 四角十字芒星路径（center cx,cy，半径 r） */
+function starPath(cx: number, cy: number, r: number): string {
+  const k = r / 6.1;
+  const f = (v: number) => (v * k).toFixed(2);
+  return [
+    `M${cx} ${(cy - r).toFixed(2)}`,
+    `c${f(0.45)} ${f(4)} ${f(2.1)} ${f(5.65)} ${f(6.1)} ${f(6.1)}`,
+    `c${f(-4)} ${f(0.45)} ${f(-5.65)} ${f(2.1)} ${f(-6.1)} ${f(6.1)}`,
+    `c${f(-0.45)} ${f(-4)} ${f(-2.1)} ${f(-5.65)} ${f(-6.1)} ${f(-6.1)}`,
+    `c${f(4)} ${f(-0.45)} ${f(5.65)} ${f(-2.1)} ${f(6.1)} ${f(-6.1)}`,
+    "z",
+  ].join("");
+}
+
+/* 三次贝塞尔取点 */
+function cubicAt(
+  p0: number[], c1: number[], c2: number[], p3: number[], t: number
+): [number, number] {
+  const mt = 1 - t;
+  return [
+    mt * mt * mt * p0[0] + 3 * mt * mt * t * c1[0] + 3 * mt * t * t * c2[0] + t * t * t * p3[0],
+    mt * mt * mt * p0[1] + 3 * mt * mt * t * c1[1] + 3 * mt * t * t * c2[1] + t * t * t * p3[1],
+  ];
+}
+
+type ArcOpts = {
+  w: number;
+  haloW: number;
+  bright: number;
+  /* 粒子数量（默认 9）与整体透明度折扣 */
+  dots?: number;
+  dotDim?: number;
+  /* 虚线样式：断断续续的细丝感 */
+  dash?: string;
+};
+
+type ArcDef = ArcOpts & {
+  d: string;
+  from: [number, number];
+  to: [number, number];
+  sample: (t: number) => [number, number];
+};
+
+function quadArc(p0: number[], p1: number[], p2: number[], o: ArcOpts): ArcDef {
+  return {
+    d: `M${p0[0]} ${p0[1]}Q${p1[0]} ${p1[1]} ${p2[0]} ${p2[1]}`,
+    from: [p0[0], p0[1]],
+    to: [p2[0], p2[1]],
+    ...o,
+    sample: (t) => quadAt(p0, p1, p2, t),
+  };
+}
+
+function cubicArc(
+  p0: number[], c1: number[], c2: number[], p3: number[],
+  o: ArcOpts
+): ArcDef {
+  return {
+    d: `M${p0[0]} ${p0[1]}C${c1[0]} ${c1[1]} ${c2[0]} ${c2[1]} ${p3[0]} ${p3[1]}`,
+    from: [p0[0], p0[1]],
+    to: [p3[0], p3[1]],
+    ...o,
+    sample: (t) => cubicAt(p0, c1, c2, p3, t),
+  };
+}
+
+/* 白羊座创意星座：Z 字形 —— 顶部蜿蜒横线（左上端星 → 右上角星）、
+   中间撇分成两根漂移弧束（右上角星 → 左下折点主星）、底部横线（折点 → 右端星） */
+const ARIES2_STARS: { cx: number; cy: number; r: number; glow: number; delay: number }[] = [
+  { cx: 5.8, cy: 18.6, r: 2.5, glow: 4.4, delay: 0 },     // 折点主星（左下）
+  { cx: 16.8, cy: 6.2, r: 1.8, glow: 3.4, delay: 0.9 },   // Z 上角星（右上，斜撇与顶横的交点）
+  { cx: 21.7, cy: 20.5, r: 1.5, glow: 2.9, delay: 1.8 },  // 底横右端星（与撇等长）
+  { cx: 4, cy: 4.8, r: 1.5, glow: 2.9, delay: 2.7 },      // 顶横左端星（左上）
+];
+
+const ARIES2_ARCS: ArcDef[] = [
+  // 顶部横线：长度减半，极细的丝，往上拱的弯曲线，虚线断续、很不明显、缓慢漂移
+  cubicArc([7.2, 5], [8.8, 2.6], [12, 2.8], [13.6, 6], {
+    w: 0.5, haloW: 1.1, bright: 0.22, dots: 5, dotDim: 0.4, dash: "0.6 2.4",
+  }),
+  // 中间那一撇拆成两根弧束：首尾都接在两端星上，一束向左上拱、一束向右下拱，中间留空成透镜形
+  quadArc([5.8, 18.6], [9.7, 10.9], [16.8, 6.2], { w: 0.95, haloW: 2.1, bright: 0.66 }),
+  quadArc([5.8, 18.6], [12.9, 13.9], [16.8, 6.2], { w: 0.85, haloW: 1.9, bright: 0.58 }),
+  // 底部横线：长度与撇相当（~16），下偏约 7°，轻微上拱
+  cubicArc([5.8, 18.6], [11.2, 18.2], [16.6, 18.8], [21.7, 20.5], { w: 0.95, haloW: 2.1, bright: 0.66 }),
+];
+
+/* 弧线上的粒子流光：两端淡出、中段更亮，夹杂淡紫颗粒 */
+const ARIES2_DOTS: { x: number; y: number; r: number; o: number; purple: boolean }[] = (() => {
+  const rand = mulberry32(20881);
+  const dots: { x: number; y: number; r: number; o: number; purple: boolean }[] = [];
+  for (const arc of ARIES2_ARCS) {
+    const n = arc.dots ?? 9;
+    const dim = arc.dotDim ?? 1;
+    for (let i = 0; i < n; i++) {
+      const t = (i + 0.5) / n;
+      const [x0, y0] = arc.sample(t);
+      const fade = Math.sin(Math.PI * t);
+      dots.push({
+        x: Number((x0 + (rand() - 0.5) * 0.6).toFixed(2)),
+        y: Number((y0 + (rand() - 0.5) * 0.6).toFixed(2)),
+        r: Number(((0.35 + rand() * 0.4 + fade * 0.3) * (0.75 + dim * 0.25)).toFixed(2)),
+        o: Number((Math.min(0.85, 0.12 + fade * (0.38 + rand() * 0.3)) * dim).toFixed(2)),
+        purple: rand() < 0.36,
+      });
+    }
+  }
+  return dots;
+})();
+
+/* 线上的闪耀星星：取点在弧线上，错峰闪烁 */
+const ARIES2_LINE_STARS: { cx: number; cy: number; r: number; delay: number }[] = (() => {
+  const picks = [
+    { arc: ARIES2_ARCS[0], ts: [0.34, 0.7] },  // 顶部蜿蜒横线
+    { arc: ARIES2_ARCS[1], ts: [0.52] },       // 斜束一
+    { arc: ARIES2_ARCS[2], ts: [0.62] },       // 斜束二
+    { arc: ARIES2_ARCS[3], ts: [0.45] },       // 底部横线
+  ];
+  const out: { cx: number; cy: number; r: number; delay: number }[] = [];
+  let d = 0;
+  for (const p of picks) {
+    for (const t of p.ts) {
+      const [cx, cy] = p.arc.sample(t);
+      out.push({
+        cx: Number(cx.toFixed(2)),
+        cy: Number(cy.toFixed(2)),
+        r: 0.95 + (d % 2) * 0.18,
+        delay: 0.5 + d * 0.55,
+      });
+      d++;
+    }
+  }
+  return out;
+})();
+
 export default function JournalPage() {
   const router = useRouter();
   const toast = useToast();
@@ -197,38 +353,105 @@ export default function JournalPage() {
                   `,
                 }}
               />
-              {/* 流星图标：大四角芒星头 + 辐射光晕 + 亮 S 拖尾 + 小四角伴星，整体飞行 */}
+              {/* 定制白羊座星座图标：3 颗十字星光点 + 2 条交汇弧形粒子光轨，舒展倾斜构图，柔光不刺眼 */}
               <svg className="relative z-10 w-[20px] h-[20px] mr-2 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden>
                 <defs>
-                  <linearGradient id="comet-trail" x1="0" y1="1" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.25" />
-                    <stop offset="50%" stopColor="#ffffff" stopOpacity="0.8" />
-                    <stop offset="100%" stopColor="#ffffff" />
-                  </linearGradient>
-                  <radialGradient id="comet-head-glow">
-                    <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-                    <stop offset="40%" stopColor="#f2e3ff" stopOpacity="0.5" />
-                    <stop offset="100%" stopColor="#f2e3ff" stopOpacity="0" />
+                  {/* 白色光轨：两端缓慢淡出，无硬端点 */}
+                  {ARIES2_ARCS.map((a, i) => (
+                    <linearGradient
+                      key={`l${i}`}
+                      id={`aries2-line-${i}`}
+                      gradientUnits="userSpaceOnUse"
+                      x1={a.from[0]} y1={a.from[1]} x2={a.to[0]} y2={a.to[1]}
+                    >
+                      <stop offset="0" stopColor="#ffffff" stopOpacity="0" />
+                      <stop offset="0.3" stopColor="#ffffff" stopOpacity={a.bright * 0.75} />
+                      <stop offset="0.55" stopColor="#ffffff" stopOpacity={a.bright} />
+                      <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+                    </linearGradient>
+                  ))}
+                  {/* 淡紫色弥散辉光：跟随弧线走向渐隐 */}
+                  {ARIES2_ARCS.map((a, i) => (
+                    <linearGradient
+                      key={`h${i}`}
+                      id={`aries2-halo-${i}`}
+                      gradientUnits="userSpaceOnUse"
+                      x1={a.from[0]} y1={a.from[1]} x2={a.to[0]} y2={a.to[1]}
+                    >
+                      <stop offset="0" stopColor="#a06bff" stopOpacity="0" />
+                      <stop offset="0.5" stopColor="#a06bff" stopOpacity="0.45" />
+                      <stop offset="1" stopColor="#a06bff" stopOpacity="0" />
+                    </linearGradient>
+                  ))}
+                  {/* 星点自带的淡紫色径向辉光 */}
+                  <radialGradient id="aries2-star-glow">
+                    <stop offset="0%" stopColor="#dcc6ff" stopOpacity="0.6" />
+                    <stop offset="50%" stopColor="#c9a9f2" stopOpacity="0.26" />
+                    <stop offset="100%" stopColor="#c9a9f2" stopOpacity="0" />
                   </radialGradient>
+                  <filter id="aries2-blur-glow" x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="1.25" />
+                  </filter>
+                  <filter id="aries2-blur-core" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="0.4" />
+                  </filter>
                 </defs>
                 <g className="btn-comet">
-                  <circle cx="16.5" cy="8.3" r="8.5" fill="url(#comet-head-glow)" />
-                  <path
-                    d="M3.5 21Q8 19.5 11 15.5T17 8"
-                    stroke="url(#comet-trail)"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M16.5 2.2c.45 4 2.1 5.65 6.1 6.1-4 .45-5.65 2.1-6.1 6.1-.45-4-2.1-5.65-6.1-6.1 4-.45 5.65-2.1 6.1-6.1z"
-                    fill="#ffffff"
-                  />
-                  <path
-                    d="M8.6 13.6c.25 1.9 1.05 2.7 2.95 2.95-1.9.25-2.7 1.05-2.95 2.95-.25-1.9-1.05-2.7-2.95-2.95 1.9-.25 2.7-1.05 2.95-2.95z"
-                    fill="#ffffff"
-                    opacity="0.95"
-                  />
-                  <circle cx="5.4" cy="19.6" r="0.9" fill="rgba(255,255,255,0.9)" />
+                  {/* 弧线的淡紫弥散辉光层 */}
+                  <g filter="url(#aries2-blur-glow)" strokeLinecap="round" fill="none">
+                    {ARIES2_ARCS.map((a, i) => (
+                      <path
+                        key={i}
+                        d={a.d}
+                        stroke={`url(#aries2-halo-${i})`}
+                        strokeWidth={a.haloW}
+                      />
+                    ))}
+                  </g>
+                  {/* 白色半透明光轨柔芯（轻微模糊去硬边；顶横细丝带虚线漂移） */}
+                  <g filter="url(#aries2-blur-core)" strokeLinecap="round" fill="none">
+                    {ARIES2_ARCS.map((a, i) => (
+                      <path
+                        key={i}
+                        d={a.d}
+                        stroke={`url(#aries2-line-${i})`}
+                        strokeWidth={a.w}
+                        strokeDasharray={a.dash}
+                        className={i === 0 ? "aries2-thread" : undefined}
+                      />
+                    ))}
+                  </g>
+                  {/* 粒子流光 */}
+                  {ARIES2_DOTS.map((d, i) => (
+                    <circle
+                      key={i}
+                      cx={d.x}
+                      cy={d.y}
+                      r={d.r}
+                      fill={d.purple ? "#c9a9f2" : "#ffffff"}
+                      opacity={d.o}
+                    />
+                  ))}
+                  {/* 线上的闪耀星星：错峰闪烁 */}
+                  {ARIES2_LINE_STARS.map((s, i) => (
+                    <g key={`ls${i}`} className="btn-spark-shine" style={{ animationDelay: `${s.delay}s` }}>
+                      <path d={starPath(s.cx, s.cy, s.r)} fill="#ffffff" opacity="0.9" />
+                    </g>
+                  ))}
+                  {/* 顶点处的闪耀星星：以自身为中心缩放闪烁 */}
+                  <circle cx="5.8" cy="18.6" r="2.8" fill="url(#aries2-star-glow)" opacity="0.9" />
+                  <g className="vertex-star">
+                    <path d={starPath(5.8, 18.6, 1.7)} fill="#ffffff" />
+                  </g>
+                  {/* 三颗十字星光点：淡紫径向辉光 + 错峰闪烁 */}
+                  {ARIES2_STARS.map((s, i) => (
+                    <g key={i}>
+                      <circle cx={s.cx} cy={s.cy} r={s.glow} fill="url(#aries2-star-glow)" />
+                      <g className="btn-spark-shine" style={{ animationDelay: `${s.delay}s` }}>
+                        <path d={starPath(s.cx, s.cy, s.r)} fill="#ffffff" />
+                      </g>
+                    </g>
+                  ))}
                 </g>
               </svg>
               <span className="relative z-10 truncate">编写日记</span>
