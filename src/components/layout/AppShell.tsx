@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { CSSProperties } from "react";
 
 const ITEMS = [
   { href: "/", label: "星球" },
@@ -8,12 +9,7 @@ const ITEMS = [
   { href: "/mood", label: "分享" },
 ];
 
-type Props = {
-  active: boolean;
-  uid: string;
-};
-
-/* 确定性伪随机：SSR 与客户端生成同一批星尘坐标，避免 hydration 抖动 */
+/* 确定性伪随机：SSR 与客户端生成同一批星点坐标，避免 hydration 抖动 */
 function mulberry32(seed: number) {
   let a = seed;
   return () => {
@@ -25,211 +21,342 @@ function mulberry32(seed: number) {
   };
 }
 
-/* 星环几何：中心 (90,40)，长轴 62 短轴 24，整体倾斜 -12° */
-const RING = { cx: 90, cy: 40, rx: 62, ry: 24, tilt: (-12 * Math.PI) / 180 };
+/* ---------- 背景星尘：细碎微弱白点，大小不一，静态不闪烁 ---------- */
+type StarDot = { left: string; top: string; size: number; opacity: number; glow: boolean };
 
-function ringPoint(t: number, jitter = 0) {
-  const { cx, cy, rx, ry, tilt } = RING;
-  const cosT = Math.cos(t);
-  const sinT = Math.sin(t);
-  const scale = 1 + jitter;
-  return {
-    x: cx + scale * (rx * cosT * Math.cos(tilt) - ry * sinT * Math.sin(tilt)),
-    y: cy + scale * (rx * cosT * Math.sin(tilt) + ry * sinT * Math.cos(tilt)),
-  };
-}
-
-/* 环带星尘：贴着椭圆散布，越靠近右下亮弧越亮越密 */
-const RING_DUST = (() => {
-  const rand = mulberry32(20261117);
-  const brightAngle = Math.PI / 4;
-  return Array.from({ length: 26 }, (_, i) => {
-    const t = (i / 26) * Math.PI * 2 + rand() * 0.22;
-    const { x, y } = ringPoint(t, (rand() - 0.5) * 0.16);
-    const near = Math.max(0, Math.cos(t - brightAngle));
+function makeStars(count: number, seed: number): StarDot[] {
+  const rand = mulberry32(seed);
+  return Array.from({ length: count }, () => {
+    const size = 0.8 + rand() * rand() * 2.6;
     return {
-      x,
-      y,
-      r: 0.4 + rand() * 0.5 + near * 0.35,
-      o: 0.3 + near * near * 0.65 + rand() * 0.1,
+      left: `${(rand() * 100).toFixed(2)}%`,
+      top: `${(rand() * 100).toFixed(2)}%`,
+      size: Number(size.toFixed(2)),
+      opacity: Number((0.1 + rand() * 0.3).toFixed(2)),
+      glow: size > 2.2,
     };
   });
-})();
+}
 
-/* 四角星芒 */
-function Sparkle({
-  x,
-  y,
-  s,
-  o = 1,
-  delay = "0s",
-}: {
-  x: number;
-  y: number;
-  s: number;
-  o?: number;
-  delay?: string;
-}) {
-  const k = s * 0.16;
-  const d = `M ${x} ${y - s} Q ${x + k} ${y - k} ${x + s} ${y} Q ${x + k} ${y + k} ${x} ${y + s} Q ${x - k} ${y + k} ${x - s} ${y} Q ${x - k} ${y - k} ${x} ${y - s} Z`;
+const NAV_STARS = makeStars(46, 20261118);
+const SIDE_STARS = makeStars(36, 20261121);
+
+function StarDots({ stars }: { stars: StarDot[] }) {
   return (
-    <path
-      d={d}
-      fill="#ffffff"
-      opacity={o}
-      className="nav-sparkle"
-      style={{ animationDelay: delay }}
-    />
+    <div aria-hidden className="absolute inset-0 overflow-hidden pointer-events-none">
+      {stars.map((s, i) => {
+        const box = s.glow ? s.size * 2.4 : s.size;
+        return (
+          <span
+            key={i}
+            className="bg-star"
+            style={{
+              left: s.left,
+              top: s.top,
+              width: Number(box.toFixed(2)),
+              height: Number(box.toFixed(2)),
+              opacity: s.opacity,
+              ...(s.glow
+                ? {
+                    background:
+                      "radial-gradient(circle, #fff 0%, rgba(255,255,255,0.45) 40%, transparent 70%)",
+                  }
+                : null),
+            }}
+          />
+        );
+      })}
+    </div>
   );
 }
 
-// 星环导航：亮弧光圈 + 环带星尘 + 四角星芒，围绕文字一圈轨道
-function GalaxyRing({ active, uid }: Props) {
-  const gradId = `galaxy-${uid}`;
-  const glowId = `galaxy-glow-${uid}`;
-  const orbitId = `galaxy-orbit-${uid}`;
+/* ---------- 星环轨道：两层错开的倾斜椭圆光轨，纯 CSS 粒子拖尾 ---------- */
 
+/* 椭圆参数角（度）→ 轨道盒内的百分比坐标 */
+function ellipsePos(deg: number) {
+  const rad = (deg * Math.PI) / 180;
+  return {
+    left: `${(50 + 49 * Math.cos(rad)).toFixed(2)}%`,
+    top: `${(50 + 48.5 * Math.sin(rad)).toFixed(2)}%`,
+  };
+}
+
+type MoonConf = {
+  /* 公转周期倍数：基于轨道基准周期，错开速度 */
+  mult: number;
+  /* 负延迟 = 开场就走在轨道的不同位置 */
+  delay: number;
+  size: number;
+};
+
+type TrackConf = {
+  w: number;
+  h: number;
+  /* 轨道倾斜角（度），几条错开形成缠绕 */
+  tilt: number;
+  /* 细线亮弧的 conic 起始角，各环错开 */
+  ringFrom: number;
+  /* 十字星芒高光所在的参数角 */
+  nodes: number[];
+  nodeScale: number;
+  /* 沿轨道公转的星星 */
+  moons: MoonConf[];
+  moonDurActive: number;
+  moonDurIdle: number;
+  dim: number;
+};
+
+/* 三条倾角/尺寸各异的椭圆细线轨道，缠绕在一起 */
+const TRACKS: TrackConf[] = [
+  {
+    w: 104, h: 44, tilt: -15, ringFrom: 210, dim: 1,
+    nodes: [15, 105, 195, 285], nodeScale: 1,
+    moons: [
+      { mult: 1, delay: 0, size: 3.4 },
+      { mult: 1.55, delay: -6.2, size: 2.6 },
+      { mult: 2.4, delay: -13.8, size: 2.1 },
+    ],
+    moonDurActive: 13, moonDurIdle: 24,
+  },
+  {
+    w: 86, h: 36, tilt: -24, ringFrom: 30, dim: 0.9,
+    nodes: [70, 250], nodeScale: 0.8,
+    moons: [
+      { mult: 1, delay: -3.4, size: 2.7 },
+      { mult: 1.8, delay: -12.6, size: 2.2 },
+    ],
+    moonDurActive: 17, moonDurIdle: 30,
+  },
+  {
+    w: 118, h: 30, tilt: -7, ringFrom: 120, dim: 0.6,
+    nodes: [150], nodeScale: 0.7,
+    moons: [
+      { mult: 1, delay: -9, size: 2.3 },
+    ],
+    moonDurActive: 21, moonDurIdle: 34,
+  },
+];
+
+/* 光轨细线：两段亮弧 + 自然淡出的透明缺口，非闭合硬圈 */
+function ringBackground(from: number): string {
+  return `conic-gradient(from ${from}deg,
+    transparent 0deg,
+    rgba(255,255,255,0.72) 55deg,
+    rgba(255,255,255,0.95) 85deg,
+    rgba(255,255,255,0.22) 130deg,
+    transparent 185deg,
+    rgba(216,172,255,0.5) 245deg,
+    rgba(255,255,255,0.85) 290deg,
+    rgba(255,255,255,0.18) 330deg,
+    transparent 360deg)`;
+}
+
+/* 环周明亮闪烁的星点：贴着轨道外围散布，部分带十字星芒，错峰闪烁 */
+const SPARK_SEEDS = [20261, 20262, 20263];
+
+type RingSpark = {
+  left: number;
+  top: number;
+  size: number;
+  dur: number;
+  delay: number;
+  big: boolean;
+};
+
+function makeRingSparks(seed: number): RingSpark[] {
+  const rand = mulberry32(seed);
+  return Array.from({ length: 12 }, () => {
+    const t = rand() * Math.PI * 2;
+    const f = 0.72 + rand() * 0.75;
+    const big = rand() > 0.78;
+    return {
+      left: Number((65 + 56 * Math.cos(t) * f).toFixed(1)),
+      top: Number((37 + 27 * Math.sin(t) * f).toFixed(1)),
+      size: Number((big ? 2.4 + rand() * 1.2 : 1.2 + rand() * 1.2).toFixed(1)),
+      dur: Number((2.6 + rand() * 2.6).toFixed(2)),
+      delay: Number((-rand() * 5).toFixed(2)),
+      big,
+    };
+  });
+}
+
+const RING_SPARKS = SPARK_SEEDS.map(makeRingSparks);
+
+/* 高光星点：白色星核 + 十字星芒 + 紫色径向辉光，随轨道一起转动 */
+function OrbitStarNode({ deg, scale = 1, delay = 0 }: { deg: number; scale?: number; delay?: number }) {
   return (
-    <svg
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      viewBox="0 0 180 80"
-      preserveAspectRatio="xMidYMid meet"
+    <span
+      className="orbit-node"
+      style={{ ...ellipsePos(deg), "--ns": scale, animationDelay: `${delay}s` } as CSSProperties}
     >
-      <defs>
-        {/* 主环渐变：右下白亮，左上紫暗，紫更浓 */}
-        <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#3c1580" stopOpacity="0" />
-          <stop offset="28%" stopColor="#9a4fe0" stopOpacity="0.75" />
-          <stop offset="52%" stopColor="#d9b3ff" stopOpacity="0.95" />
-          <stop offset="66%" stopColor="#ffffff" />
-          <stop offset="88%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#c77dff" stopOpacity="0.85" />
-        </linearGradient>
+      <span className="orbit-node-aura" />
+      <span className="orbit-node-beam" />
+      <span className="orbit-node-beam-v" />
+      <span className="orbit-node-core" />
+    </span>
+  );
+}
 
-        {/* 右下爆发光晕 */}
-        <radialGradient id={glowId} cx="72%" cy="64%" r="46%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity={active ? 0.4 : 0.2} />
-          <stop offset="40%" stopColor="#c77dff" stopOpacity={active ? 0.3 : 0.14} />
-          <stop offset="100%" stopColor="#6a21b5" stopOpacity="0" />
-        </radialGradient>
+/* 沿椭圆轨道公转的星星：tilt 压扁把圆周变椭圆路径，arm 提供半径偏移，
+   anti 与 rotor 同速反转抵消朝向，星点自身始终保持正立圆形 */
+function OrbitMoon({
+  w,
+  h,
+  dur,
+  delay,
+  size,
+}: {
+  w: number;
+  h: number;
+  dur: number;
+  delay: number;
+  size: number;
+}) {
+  const f = h / w;
+  const spin = { animationDuration: `${dur}s`, animationDelay: `${delay}s` };
+  return (
+    <span className="orbit-tilt" style={{ transform: `scaleY(${f.toFixed(4)})` }}>
+      <span className="orbit-rotor" style={spin}>
+        <span className="orbit-arm" style={{ marginLeft: w / 2 }}>
+          <span className="orbit-anti" style={spin}>
+            <span
+              className="orbit-moon"
+              style={{ width: size, height: size, transform: `scaleY(${(1 / f).toFixed(4)})` }}
+            />
+          </span>
+        </span>
+      </span>
+    </span>
+  );
+}
 
-        {/* 流星飞行轨道（与主环同形） */}
-        <path
-          id={orbitId}
-          d="M150.6 27.1 A62 24 -12 1 0 29.4 52.9 A62 24 -12 1 0 150.6 27.1"
-          fill="none"
+/* 环周闪烁星点层 */
+function RingSparkles({ sparks, active }: { sparks: RingSpark[]; active: boolean }) {
+  return (
+    <span
+      className="ring-sparkles"
+      style={{ opacity: active ? 1 : 0.55, transition: "opacity 0.6s ease" }}
+    >
+      {sparks.map((s, i) => (
+        <span
+          key={i}
+          className={`ring-twinkle${s.big ? " ring-twinkle-x" : ""}`}
+          style={{
+            left: s.left,
+            top: s.top,
+            width: s.size,
+            height: s.size,
+            animationDuration: `${s.dur}s`,
+            animationDelay: `${s.delay}s`,
+          }}
         />
-      </defs>
+      ))}
+    </span>
+  );
+}
 
-      {/* 环内极淡柔光 */}
-      <ellipse
-        cx="90"
-        cy="40"
-        rx="62"
-        ry="24"
-        fill={`url(#${glowId})`}
-        transform="rotate(-12 90 40)"
-      />
-
-      {/* 多层细线轨道：主环 */}
-      <ellipse
-        cx="90"
-        cy="40"
-        rx="62"
-        ry="24"
-        fill="none"
-        stroke={`url(#${gradId})`}
-        strokeWidth={active ? 1.3 : 0.9}
-        transform="rotate(-12 90 40)"
-      />
-
-      {/* 第二层细线：略微错开倾角 */}
-      <ellipse
-        cx="90"
-        cy="40"
-        rx="57"
-        ry="21"
-        fill="none"
-        stroke={`url(#${gradId})`}
-        strokeWidth={active ? 0.8 : 0.55}
-        opacity={active ? 0.9 : 0.65}
-        transform="rotate(-14 90 40)"
-      />
-
-      {/* 第三层更细的内线 */}
-      <ellipse
-        cx="91"
-        cy="41"
-        rx="51"
-        ry="18"
-        fill="none"
-        stroke={`url(#${gradId})`}
-        strokeWidth="0.45"
-        opacity={active ? 0.6 : 0.4}
-        transform="rotate(-15 91 41)"
-      />
-
-      {/* 第四层外侧若隐若现细线 */}
-      <ellipse
-        cx="90"
-        cy="40"
-        rx="68"
-        ry="27"
-        fill="none"
-        stroke={`url(#${gradId})`}
-        strokeWidth="0.4"
-        opacity={active ? 0.35 : 0.22}
-        transform="rotate(-10 90 40)"
-      />
-
-      {/* 亮弧白热光斑：小而脆，无模糊 */}
-      <circle cx="142" cy="44" r={active ? 1.6 : 1.1} fill="#ffffff" opacity={active ? 1 : 0.8} />
-      <circle cx="128" cy="53" r={active ? 1.1 : 0.8} fill="#ffffff" opacity={active ? 0.9 : 0.6} />
-
-      {/* 沿星轨流走的星星：多颗不同速度循环 */}
-      <circle r={active ? 1.1 : 0.85} fill="#ffffff" opacity="0.95">
-        <animateMotion dur="5s" begin="-1s" repeatCount="indefinite">
-          <mpath href={`#${orbitId}`} />
-        </animateMotion>
-      </circle>
-      <circle r={active ? 0.9 : 0.7} fill="#ffffff" opacity="0.8">
-        <animateMotion dur="7s" begin="-3s" repeatCount="indefinite">
-          <mpath href={`#${orbitId}`} />
-        </animateMotion>
-      </circle>
-      <circle r="0.65" fill="#e9c6ff" opacity="0.85">
-        <animateMotion dur="6s" begin="-4.5s" repeatCount="indefinite">
-          <mpath href={`#${orbitId}`} />
-        </animateMotion>
-      </circle>
-      <circle r="0.55" fill="#ffffff" opacity="0.7">
-        <animateMotion dur="8s" begin="-6s" repeatCount="indefinite">
-          <mpath href={`#${orbitId}`} />
-        </animateMotion>
-      </circle>
-
-      {/* 环带星尘 */}
-      <g>
-        {RING_DUST.map((d, i) => (
-          <circle key={i} cx={d.x} cy={d.y} r={d.r} fill="#ffffff" opacity={d.o} />
+/* 单层轨道：倾斜椭圆细线，本体静止、轻微闪动，星星沿轨道公转（选中态公转更快） */
+function OrbitTrack({
+  conf,
+  phase,
+  active,
+}: {
+  conf: TrackConf;
+  phase: number;
+  active: boolean;
+}) {
+  return (
+    <span
+      className="absolute left-1/2 top-1/2 block"
+      style={{
+        width: conf.w,
+        height: conf.h,
+        translate: "-50% -50%",
+        rotate: `${conf.tilt}deg`,
+        opacity: active ? conf.dim : conf.dim * 0.45,
+        transition: "opacity 0.6s ease",
+      }}
+    >
+      <span className="orbit-track">
+        <span className="orbit-shimmer" style={{ animationDelay: `${Math.abs(phase) % 6.2}s` }}>
+          <span className="orbit-ring-glow">
+            <span className="orbit-ring" style={{ background: ringBackground(conf.ringFrom) }} />
+          </span>
+        </span>
+        {conf.nodes.map((deg, i) => (
+          <OrbitStarNode
+            key={deg}
+            deg={deg}
+            scale={conf.nodeScale * (i === 0 ? 1.2 : 1)}
+            delay={i * 1.4}
+          />
         ))}
-      </g>
+        {conf.moons.map((m, i) => (
+          <OrbitMoon
+            key={i}
+            w={conf.w}
+            h={conf.h}
+            dur={(active ? conf.moonDurActive : conf.moonDurIdle) * m.mult}
+            delay={m.delay}
+            size={active ? m.size : m.size * 0.85}
+          />
+        ))}
+      </span>
+    </span>
+  );
+}
 
-      {/* 四角星芒：选中更大更亮更多 */}
-      <Sparkle x={148} y={52} s={active ? 5.6 : 4} o={1} />
-      <Sparkle x={122} y={58} s={3.6} o={0.9} delay="1.2s" />
-      <Sparkle x={152} y={30} s={3} o={0.8} delay="0.6s" />
-      <Sparkle x={34} y={28} s={2.4} o={0.5} delay="1.8s" />
-      <Sparkle x={136} y={46} s={2.2} o={0.85} delay="2.6s" />
-      <Sparkle x={44} y={54} s={2} o={0.6} delay="0.3s" />
-      {active && (
-        <>
-          <Sparkle x={64} y={60} s={3.2} o={0.9} delay="0.9s" />
-          <Sparkle x={106} y={17} s={3.6} o={0.95} delay="1.5s" />
-          <Sparkle x={158} y={46} s={2.6} o={0.85} delay="2.2s" />
-        </>
-      )}
-    </svg>
+/* 各 Tab 的闪动相位（作为 shimmer 的负延迟），让三个星环闪动节奏错开 */
+const TAB_PHASES: { outer: number; inner: number; flat: number }[] = [
+  { outer: -2.4, inner: -2.2, flat: -1.1 },
+  { outer: -0.6, inner: 1.7, flat: -4.3 },
+  { outer: -1.5, inner: -3.7, flat: -2.8 },
+];
+
+/*
+ * 星环整体：环心柔光 + 三条倾斜缠绕的椭圆细线轨道（原地轻微闪动）
+ * + 沿轨道公转的星星 + 环周明亮闪烁的星点。
+ * 全部为 CSS 动画：组件卸载（或所在导航 display:none）即自动停止，无定时器需要清理。
+ */
+function GalaxyRing({
+  active,
+  phase,
+  sparks,
+}: {
+  active: boolean;
+  phase: { outer: number; inner: number; flat: number };
+  sparks: RingSpark[];
+}) {
+  return (
+    <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <span className="orbit-halo" style={{ opacity: active ? 1 : 0.35, transition: "opacity 0.6s ease" }} />
+      <OrbitTrack conf={TRACKS[0]} phase={phase.outer} active={active} />
+      <OrbitTrack conf={TRACKS[1]} phase={phase.inner} active={active} />
+      <OrbitTrack conf={TRACKS[2]} phase={phase.flat} active={active} />
+      <RingSparkles sparks={sparks} active={active} />
+    </span>
+  );
+}
+
+/* 文字光晕：选中为白紫柔光，未选中仅微弱白光 */
+function labelGlow(active: boolean): CSSProperties {
+  return {
+    textShadow: active
+      ? "0 0 10px rgba(228,208,255,0.7), 0 0 24px rgba(150,92,232,0.4)"
+      : "0 0 6px rgba(255,255,255,0.22)",
+  };
+}
+
+function TabLabel({ label, active, size }: { label: string; active: boolean; size: string }) {
+  return (
+    <span
+      className={`relative z-10 ${size} transition-colors duration-500 ${
+        active ? "text-white font-medium" : "text-white/60"
+      }`}
+      style={labelGlow(active)}
+    >
+      {label}
+    </span>
   );
 }
 
@@ -243,27 +370,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="planet-shell min-h-dvh flex flex-col md:flex-row">
-      {/* 桌面侧边栏：星环居中包裹文字，与移动端一致 */}
-      <aside className="hidden md:flex w-44 flex-col gap-2 p-4 border-r border-outline-variant">
-        <p className="px-3 py-2 text-sm text-on-surface-variant">伴语星球</p>
-        {ITEMS.map((item) => {
+      {/* 桌面侧边栏：星环居中包裹文字，与移动端一致（md 以下 display:none，动画自动暂停） */}
+      <aside className="hidden md:flex relative w-44 flex-col gap-3 p-4 border-r border-white/[0.06]">
+        <StarDots stars={SIDE_STARS} />
+        <p className="relative px-3 py-2 text-sm tracking-[0.3em] text-white/40">伴语星球</p>
+        {ITEMS.map((item, i) => {
           const active = isActive(item);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`relative h-10 px-3 rounded-xl flex items-center justify-center overflow-visible ${
-                active
-                  ? "bg-surface-container-high text-primary"
-                  : "text-on-surface-variant"
-              }`}
+              aria-current={active ? "page" : undefined}
+              className="relative h-14 rounded-xl flex items-center justify-center"
             >
-              <span className="relative z-10">{item.label}</span>
-              <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="relative w-32 h-14">
-                  <GalaxyRing active={active} uid={`side-${item.label}`} />
-                </span>
-              </span>
+              <GalaxyRing active={active} phase={TAB_PHASES[i]} sparks={RING_SPARKS[i]} />
+              <TabLabel label={item.label} active={active} size="text-lg" />
             </Link>
           );
         })}
@@ -271,39 +392,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex-1 pb-20 md:pb-0">{children}</div>
 
-      {/* 移动端底部导航：浅紫半透明条带，上缘亮线 */}
-      <nav
-        className="md:hidden fixed bottom-0 inset-x-0 h-20 flex z-10"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 100%)",
-          backdropFilter: "blur(18px)",
-          borderTop: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        {ITEMS.map((item) => {
+      {/* 移动端底部导航：悬浮星环 + 静态星尘，无硬描边 */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 h-20 flex z-10">
+        <StarDots stars={NAV_STARS} />
+        {ITEMS.map((item, i) => {
           const active = isActive(item);
           return (
             <Link
               key={item.href}
               href={item.href}
+              aria-current={active ? "page" : undefined}
               className="relative flex-1 flex items-center justify-center"
             >
-              <span className="relative w-full h-16 flex items-center justify-center">
-                <GalaxyRing active={active} uid={`bot-${item.label}`} />
-                <span
-                  className={`relative z-10 text-xl transition-all duration-500 ${
-                    active ? "text-white font-medium" : "text-gray-200/90"
-                  }`}
-                  style={{
-                    textShadow: active
-                      ? "0 0 8px #e19cff, 0 0 18px #9b46dd"
-                      : "0 0 3px rgba(255,255,255,0.4)",
-                  }}
-                >
-                  {item.label}
-                </span>
-              </span>
+              <GalaxyRing active={active} phase={TAB_PHASES[i]} sparks={RING_SPARKS[i]} />
+              <TabLabel label={item.label} active={active} size="text-xl" />
             </Link>
           );
         })}

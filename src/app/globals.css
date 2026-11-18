@@ -74,7 +74,7 @@
 
 html,
 body {
-  background: #0d0a16;
+  background: #140e26;
   color: var(--md-sys-color-on-surface);
 }
 
@@ -99,30 +99,33 @@ body {
 }
 
 .planet-shell {
-  background: #0d0a16;
+  background: #140e26;
   color: var(--md-sys-color-on-surface);
 }
 
 .planet-shell aside {
-  background: color-mix(in srgb, #0d0a16 88%, white 6%);
-  border-color: color-mix(in srgb, white 10%, transparent);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.035),
+    rgba(255, 255, 255, 0.012)
+  );
 }
 
+/* 底部导航：无硬描边，向下渐隐融入 #140e26 底色 */
 .planet-shell nav {
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, white 3%, transparent),
-    color-mix(in srgb, white 8%, transparent)
+    rgba(20, 14, 38, 0) 0%,
+    rgba(20, 14, 38, 0.55) 45%,
+    #140e26 100%
   );
-  backdrop-filter: blur(18px);
-  border-top: 1px solid color-mix(in srgb, white 8%, transparent);
 }
 
 .planet-scene {
   background:
     radial-gradient(ellipse 80% 46% at 50% 12%, color-mix(in srgb, var(--md-sys-color-primary) 26%, transparent), transparent 68%),
     radial-gradient(ellipse 50% 36% at 88% 88%, color-mix(in srgb, var(--md-sys-color-tertiary) 16%, transparent), transparent 72%),
-    #0d0a16;
+    #140e26;
   color: var(--md-sys-color-on-surface);
 }
 
@@ -149,9 +152,260 @@ body {
   filter: blur(18px);
 }
 
-/* 导航星环上的四角星芒：错峰闪烁 */
-.nav-sparkle {
-  animation: planet-twinkle 3.2s ease-in-out infinite;
+/* ===== 导航星环：纯 CSS 光轨（无图片 / 无 SVG） ===== */
+
+/* 背景星尘：细碎静态白点，不闪烁 */
+.bg-star {
+  position: absolute;
+  border-radius: 9999px;
+  background: #fff;
+  translate: -50% -50%;
+}
+
+/* 光轨细线：conic 亮弧经椭圆环 mask 裁成 1px 级细线，亮弧间自然淡出成透明缺口 */
+.orbit-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  -webkit-mask-image: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 2.2px),
+    rgba(0, 0, 0, 0.85) calc(100% - 1px),
+    #000 100%
+  );
+  mask-image: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 2.2px),
+    rgba(0, 0, 0, 0.85) calc(100% - 1px),
+    #000 100%
+  );
+}
+
+/* 细线柔光：filter 放在 mask 元素外层，光晕跟随裁剪后的线条形状 */
+.orbit-ring-glow {
+  position: absolute;
+  inset: 0;
+  filter: drop-shadow(0 0 1.5px rgba(214, 174, 255, 0.6))
+    drop-shadow(0 0 5px rgba(150, 92, 232, 0.35));
+}
+
+/* 环周明亮闪烁的星点 */
+.ring-sparkles {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: 130px;
+  height: 74px;
+  pointer-events: none;
+}
+
+.ring-twinkle {
+  position: absolute;
+  translate: -50% -50%;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow:
+    0 0 4px 1px rgba(255, 255, 255, 0.75),
+    0 0 9px 3px rgba(190, 140, 255, 0.4);
+  animation: ring-twinkle 3.4s ease-in-out infinite;
+}
+
+/* 较大星点附十字星芒 */
+.ring-twinkle-x::before,
+.ring-twinkle-x::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+}
+
+.ring-twinkle-x::before {
+  width: 11px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+}
+
+.ring-twinkle-x::after {
+  width: 1px;
+  height: 11px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+}
+
+@keyframes ring-twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+/* 轨道本体静止不旋转；粒子层只做原地轻微闪动 */
+.orbit-track {
+  position: absolute;
+  inset: 0;
+}
+
+.orbit-shimmer {
+  position: absolute;
+  inset: 0;
+  animation: orbit-shimmer 5.2s ease-in-out infinite;
+}
+
+@keyframes orbit-shimmer {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.82;
+  }
+}
+
+/* 环心柔光 */
+.orbit-halo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 132px;
+  height: 74px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(238, 231, 255, 0.13),
+    rgba(176, 124, 255, 0.05) 55%,
+    transparent 78%
+  );
+  pointer-events: none;
+}
+
+/* 高光星点：白核 + 十字星芒 + 紫色径向辉光，随轨道转动并缓慢呼吸 */
+.orbit-node {
+  --ns: 1;
+  position: absolute;
+  translate: -50% -50%;
+  animation: orbit-node-breathe 5.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes orbit-node-breathe {
+  0%,
+  100% {
+    opacity: 0.68;
+    scale: calc(var(--ns) * 0.9);
+  }
+  50% {
+    opacity: 1;
+    scale: calc(var(--ns) * 1.1);
+  }
+}
+
+.orbit-node-aura {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 42px;
+  height: 42px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(206, 158, 255, 0.5) 0%,
+    rgba(158, 96, 238, 0.2) 42%,
+    transparent 68%
+  );
+}
+
+.orbit-node-beam,
+.orbit-node-beam-v {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+}
+
+.orbit-node-beam {
+  width: 18px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+}
+
+.orbit-node-beam-v {
+  width: 1px;
+  height: 18px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+}
+
+.orbit-node-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 5px 1px rgba(255, 255, 255, 0.9),
+    0 0 13px 4px rgba(188, 128, 255, 0.5);
+}
+
+/* 沿轨道公转的星星：轨道静止，星星沿椭圆路径逆时针滑行。
+   层级：tilt(scaleY压扁→圆周变椭圆) > rotor(公转) > arm(半径偏移) > anti(同速反转，只管星星自身朝向) > 星点 */
+.orbit-tilt,
+.orbit-rotor,
+.orbit-arm,
+.orbit-anti {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+}
+
+.orbit-rotor {
+  animation: orbit-revolve linear infinite;
+  will-change: transform;
+}
+
+.orbit-anti {
+  animation: orbit-revolve-anti linear infinite;
+}
+
+@keyframes orbit-revolve {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes orbit-revolve-anti {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.orbit-moon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% -50%;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow:
+    0 0 6px 1.5px rgba(255, 255, 255, 0.85),
+    0 0 14px 5px rgba(188, 128, 255, 0.45);
 }
 
 /* 按钮内的星点：轻柔闪烁，不隐入黑暗 */
@@ -624,7 +878,10 @@ body {
   .energy-orb,
   .orb-ring,
   .orb-spark,
-  .nav-sparkle,
+  .orbit-shimmer,
+  .orbit-rotor,
+  .orbit-node,
+  .ring-twinkle,
   .btn-glass-dust,
   .btn-comet,
   .btn-star-glimmer,
