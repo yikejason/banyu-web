@@ -457,13 +457,13 @@ body {
   background: conic-gradient(
     from var(--flow-angle),
     transparent 0deg,
-    rgba(255, 255, 255, 0.9) 30deg,
-    rgba(196, 160, 255, 0.5) 65deg,
+    rgba(255, 255, 255, 0.45) 30deg,
+    rgba(196, 160, 255, 0.28) 65deg,
     transparent 105deg,
-    rgba(255, 255, 255, 0.65) 195deg,
-    rgba(176, 138, 248, 0.4) 235deg,
+    rgba(255, 255, 255, 0.32) 195deg,
+    rgba(176, 138, 248, 0.22) 235deg,
     transparent 275deg,
-    rgba(255, 255, 255, 0.8) 315deg,
+    rgba(255, 255, 255, 0.4) 315deg,
     transparent 360deg
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);

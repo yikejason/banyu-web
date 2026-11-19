@@ -157,7 +157,7 @@ export default function JournalPage() {
                 letterSpacing: "0.05em",
                 background: [
                   "linear-gradient(180deg, #352657 0%, #1e1442 35%, #0a0620 100%) padding-box",
-                  "conic-gradient(from 0deg, #e9ddfc 0deg, #9a6fd4 65deg, #f7f0ff 140deg, #8a5ccb 215deg, #e9ddfc 280deg, #b58ce8 330deg, #e9ddfc 360deg) border-box",
+                  "conic-gradient(from 0deg, #bdaadd 0deg, #7852b2 65deg, #cfc2e6 140deg, #6944a6 215deg, #bdaadd 280deg, #8f6ac6 330deg, #bdaadd 360deg) border-box",
                 ].join(", "),
                 border: "1.5px solid transparent",
                 boxShadow: [
@@ -272,7 +272,7 @@ export default function JournalPage() {
                 letterSpacing: "0.05em",
                 background: [
                   "linear-gradient(180deg, #3d2d6e 0%, #241752 35%, #0d0822 100%) padding-box",
-                  "conic-gradient(from 0deg, #f3ecff 0deg, #8a5fd8 65deg, #ffffff 140deg, #7a4fd0 215deg, #f3ecff 280deg, #a678e8 330deg, #f3ecff 360deg) border-box",
+                  "conic-gradient(from 0deg, #c3b2e4 0deg, #6a44b2 65deg, #d3c6ec 140deg, #5e3aa8 215deg, #c3b2e4 280deg, #8458c4 330deg, #c3b2e4 360deg) border-box",
                 ].join(", "),
                 border: "2px solid transparent",
                 boxShadow: [

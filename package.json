@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/write-dev-version.mjs && next dev",
     "build": "next build",
     "build:static": "cross-env API_BASE= next build",
     "deploy": "bash deploy/deploy.sh",

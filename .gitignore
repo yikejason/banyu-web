@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dev 自动刷新标记（每次 next dev 启动重新生成，见 scripts/write-dev-version.mjs）
+/public/version.json

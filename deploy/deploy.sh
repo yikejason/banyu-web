@@ -11,13 +11,30 @@ REMOTE_DIR="/var/www/banyu-web"
 
 cd "$(dirname "$0")/.." # 定位到项目根目录
 
-# Next 16 构建需要 node >= 20.9；默认 node 太老时切到 nvm 里的 v22
+# Next 16 构建需要 node >= 20.9；默认 node 太老时从 nvm 里挑一个满足要求的版本
 node_major() { node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0; }
 if [ "$(node_major)" -lt 20 ]; then
-  export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH"
+  best_dir=""
+  best_key=0
+  for d in "$HOME"/.nvm/versions/node/v*/; do
+    n="${d##*/node/v}"
+    n="${n%/}"
+    major="${n%%.*}"
+    [ "${major:-0}" -ge 20 ] || continue
+    if [ -x "${d}bin/node" ] || [ -f "${d}bin/node.exe" ]; then
+      key="$(echo "$n" | awk -F. '{printf "%d%03d%03d", $1, $2, $3}')"
+      if [ "${key:-0}" -gt "$best_key" ]; then
+        best_key="$key"
+        best_dir="${d}bin"
+      fi
+    fi
+  done
+  if [ -n "$best_dir" ]; then
+    export PATH="$best_dir:$PATH"
+  fi
 fi
 if [ "$(node_major)" -lt 20 ]; then
-  echo "构建需要 node >= 20.9，当前是 $(node -v 2>/dev/null || echo 未安装)" >&2
+  echo "构建需要 node >= 20.9，当前是 $(node -v 2>/dev/null || echo 未安装)，且 nvm 里没有可用版本" >&2
   exit 1
 fi
 
@@ -35,8 +52,20 @@ echo "==> 写入版本号 out/version.json ..."
 node -e "require('fs').writeFileSync('out/version.json', JSON.stringify({ v: Date.now() }))"
 
 echo "==> 上传到 root@${SERVER_IP}:${REMOTE_DIR}/ ..."
-# rsync 不建父目录，先确保远端目录存在；--delete 保证远端与 out/ 完全一致
-ssh "root@${SERVER_IP}" "mkdir -p ${REMOTE_DIR}"
-rsync -avz --delete out/ "root@${SERVER_IP}:${REMOTE_DIR}/"
+# 有 rsync 走 rsync；没有（Windows Git Bash 默认不带）则 tar 经 ssh 流式上传，
+# 远端先解到 .new 目录再原子换名，效果等同 rsync --delete，且保留 .old 便于回滚
+if command -v rsync >/dev/null 2>&1; then
+  rsync -avz --delete out/ "root@${SERVER_IP}:${REMOTE_DIR}/"
+else
+  ssh "root@${SERVER_IP}" "mkdir -p ${REMOTE_DIR}"
+  tar czf - -C out . | ssh "root@${SERVER_IP}" "
+    set -e
+    rm -rf ${REMOTE_DIR}.new ${REMOTE_DIR}.old
+    mkdir -p ${REMOTE_DIR}.new
+    tar xzf - -C ${REMOTE_DIR}.new
+    mv ${REMOTE_DIR} ${REMOTE_DIR}.old
+    mv ${REMOTE_DIR}.new ${REMOTE_DIR}
+  "
+fi
 
 echo "==> 完成：http://${SERVER_IP}/"
