@@ -88,17 +88,34 @@ export function PlanetView({
         </svg>
         {figureSrc && (
           <span
-            className="orb-halo pointer-events-none absolute bottom-[6%] left-1/2 z-10 isolate block h-[46%] -translate-x-1/2"
+            className="orb-halo orb3d pointer-events-none absolute bottom-[6%] left-1/2 z-10 block h-[46%] aspect-[8/7] -translate-x-1/2"
             style={figureRing ? ({ "--ring": figureRing } as CSSProperties) : undefined}
           >
-            <span className="orb-ring orb-ring-back" aria-hidden />
-            <span className="orb-ring orb-ring-outer" aria-hidden />
-            <img
-              src={figureSrc}
-              alt={figureLabel ?? ""}
-              className="energy-orb relative z-[1] block h-full w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.45)]"
-            />
-            <span className="orb-ring orb-ring-front" aria-hidden />
+            <span className="orb3d-precess orb3d-precess-dashed" aria-hidden>
+              <span className="orb3d-ring orb3d-ring-a" aria-hidden />
+              <span className="orb3d-ring orb3d-ring-b" aria-hidden />
+              <span className="orb3d-ring orb3d-ring-c" aria-hidden />
+            </span>
+            <span className="orb3d-body">
+              <img
+                src={figureSrc}
+                alt={figureLabel ?? ""}
+                className="energy-orb h-full w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.45)]"
+              />
+              <span
+                className="orb-sheen"
+                aria-hidden
+                style={
+                  {
+                    maskImage: `url(${figureSrc})`,
+                    WebkitMaskImage: `url(${figureSrc})`,
+                    maskSize: "contain",
+                    maskPosition: "center bottom",
+                    maskRepeat: "no-repeat",
+                  } as CSSProperties
+                }
+              />
+            </span>
             <span className="orb-spark orb-spark-1" aria-hidden />
             <span className="orb-spark orb-spark-2" aria-hidden />
           </span>

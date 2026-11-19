@@ -29,18 +29,39 @@ export function DollSelectScreen({
                     }`}
                 >
                   <span
-//                     className="orb-halo relative isolate block h-28 w-28"
-                    className={`orb-halo orb-${doll.id} relative isolate block h-28 w-28`}
+                    className={`orb-halo orb3d orb-${doll.id} relative block h-28 w-28`}
                     style={{ "--ring": doll.ring } as CSSProperties}
                   >
-                    <span className="orb-ring orb-ring-back" aria-hidden />
-                    <span className="orb-ring orb-ring-outer" aria-hidden />
-                    <img
-                      src={doll.src}
-                      alt=""
-                      className="energy-orb absolute inset-0 z-[1] h-full w-full object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)]"
-                    />
-                    <span className="orb-ring orb-ring-front" aria-hidden />
+                    {/* 环：代码画的 3D 圆环，环面绕斜轴匀速进动，前后穿插靠 preserve-3d */}
+                    <span
+                      className={`orb3d-precess${doll.id === "feiyan" ? " orb3d-precess-dashed" : ""}`}
+                      aria-hidden
+                    >
+                      <span className="orb3d-ring orb3d-ring-a" aria-hidden />
+                      <span className="orb3d-ring orb3d-ring-b" aria-hidden />
+                      <span className="orb3d-ring orb3d-ring-c" aria-hidden />
+                    </span>
+                    {/* 球：静态 PNG + 高光漂移（mask 裁出球轮廓） */}
+                    <span className="orb3d-body">
+                      <img
+                        src={doll.src}
+                        alt=""
+                        className="energy-orb h-full w-full object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)]"
+                      />
+                      <span
+                        className="orb-sheen"
+                        aria-hidden
+                        style={
+                          {
+                            maskImage: `url(${doll.src})`,
+                            WebkitMaskImage: `url(${doll.src})`,
+                            maskSize: "contain",
+                            maskPosition: "center",
+                            maskRepeat: "no-repeat",
+                          } as CSSProperties
+                        }
+                      />
+                    </span>
                     <span className="orb-spark orb-spark-1" aria-hidden />
                     <span className="orb-spark orb-spark-2" aria-hidden />
                   </span>
