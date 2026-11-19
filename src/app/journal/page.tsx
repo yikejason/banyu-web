@@ -7,18 +7,6 @@ import { useToast } from "@/components/m3/Toast";
 import { JournalList } from "@/components/journal/JournalList";
 import { NightScene } from "@/components/layout/NightScene";
 
-/* 确定性伪随机：SSR 与客户端生成同一批粒子坐标，避免 hydration 抖动 */
-function mulberry32(seed: number) {
-  let a = seed;
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 /* 二次贝塞尔取点 */
 function quadAt(p0: number[], p1: number[], p2: number[], t: number): [number, number] {
   const mt = 1 - t;
@@ -57,11 +45,6 @@ type ArcOpts = {
   w: number;
   haloW: number;
   bright: number;
-  /* 粒子数量（默认 9）与整体透明度折扣 */
-  dots?: number;
-  dotDim?: number;
-  /* 虚线样式：断断续续的细丝感 */
-  dash?: string;
 };
 
 type ArcDef = ArcOpts & {
@@ -100,43 +83,21 @@ const ARIES2_STARS: { cx: number; cy: number; r: number; glow: number; delay: nu
   { cx: 5.8, cy: 18.6, r: 2.5, glow: 4.4, delay: 0 },     // 折点主星（左下）
   { cx: 16.8, cy: 6.2, r: 1.8, glow: 3.4, delay: 0.9 },   // Z 上角星（右上，斜撇与顶横的交点）
   { cx: 21.7, cy: 20.5, r: 1.5, glow: 2.9, delay: 1.8 },  // 底横右端星（与撇等长）
-  { cx: 4, cy: 4.8, r: 1.5, glow: 2.9, delay: 2.7 },      // 顶横左端星（左上）
 ];
 
 const ARIES2_ARCS: ArcDef[] = [
-  // 顶部横线：长度减半，极细的丝，往上拱的弯曲线，虚线断续、很不明显、缓慢漂移
-  cubicArc([7.2, 5], [8.8, 2.6], [12, 2.8], [13.6, 6], {
-    w: 0.5, haloW: 1.1, bright: 0.22, dots: 5, dotDim: 0.4, dash: "0.6 2.4",
+  // 顶部横线：只探出一小截细丝（跨度约为原来的四分之一），往上拱的弯曲线、虚无缥缈
+  cubicArc([8.8, 5], [9.6, 2.6], [11.2, 2.8], [12, 6], {
+    w: 0.5, haloW: 1.1, bright: 0.22,
   }),
   // 中间那一撇拆成两根弧束：首尾都接在两端星上，一束向左上拱、一束向右下拱，中间留空成透镜形
   quadArc([5.8, 18.6], [9.7, 10.9], [16.8, 6.2], { w: 0.95, haloW: 2.1, bright: 0.66 }),
   quadArc([5.8, 18.6], [12.9, 13.9], [16.8, 6.2], { w: 0.85, haloW: 1.9, bright: 0.58 }),
   // 底部横线：长度与撇相当（~16），下偏约 7°，轻微上拱
   cubicArc([5.8, 18.6], [11.2, 18.2], [16.6, 18.8], [21.7, 20.5], { w: 0.95, haloW: 2.1, bright: 0.66 }),
+  // 顶部左端小星 → 右上角顶点的极细连丝：向上轻拱，若有若无
+  quadArc([9.8, 3.5], [13.4, 1.9], [16.8, 6.2], { w: 0.35, haloW: 0.9, bright: 0.28 }),
 ];
-
-/* 弧线上的粒子流光：两端淡出、中段更亮，夹杂淡紫颗粒 */
-const ARIES2_DOTS: { x: number; y: number; r: number; o: number; purple: boolean }[] = (() => {
-  const rand = mulberry32(20881);
-  const dots: { x: number; y: number; r: number; o: number; purple: boolean }[] = [];
-  for (const arc of ARIES2_ARCS) {
-    const n = arc.dots ?? 9;
-    const dim = arc.dotDim ?? 1;
-    for (let i = 0; i < n; i++) {
-      const t = (i + 0.5) / n;
-      const [x0, y0] = arc.sample(t);
-      const fade = Math.sin(Math.PI * t);
-      dots.push({
-        x: Number((x0 + (rand() - 0.5) * 0.6).toFixed(2)),
-        y: Number((y0 + (rand() - 0.5) * 0.6).toFixed(2)),
-        r: Number(((0.35 + rand() * 0.4 + fade * 0.3) * (0.75 + dim * 0.25)).toFixed(2)),
-        o: Number((Math.min(0.85, 0.12 + fade * (0.38 + rand() * 0.3)) * dim).toFixed(2)),
-        purple: rand() < 0.36,
-      });
-    }
-  }
-  return dots;
-})();
 
 /* 线上的闪耀星星：取点在弧线上，错峰闪烁 */
 const ARIES2_LINE_STARS: { cx: number; cy: number; r: number; delay: number }[] = (() => {
@@ -408,7 +369,7 @@ export default function JournalPage() {
                       />
                     ))}
                   </g>
-                  {/* 白色半透明光轨柔芯（轻微模糊去硬边；顶横细丝带虚线漂移） */}
+                  {/* 白色半透明光轨柔芯：轻微模糊去硬边 */}
                   <g filter="url(#aries2-blur-core)" strokeLinecap="round" fill="none">
                     {ARIES2_ARCS.map((a, i) => (
                       <path
@@ -416,22 +377,9 @@ export default function JournalPage() {
                         d={a.d}
                         stroke={`url(#aries2-line-${i})`}
                         strokeWidth={a.w}
-                        strokeDasharray={a.dash}
-                        className={i === 0 ? "aries2-thread" : undefined}
                       />
                     ))}
                   </g>
-                  {/* 粒子流光 */}
-                  {ARIES2_DOTS.map((d, i) => (
-                    <circle
-                      key={i}
-                      cx={d.x}
-                      cy={d.y}
-                      r={d.r}
-                      fill={d.purple ? "#c9a9f2" : "#ffffff"}
-                      opacity={d.o}
-                    />
-                  ))}
                   {/* 线上的闪耀星星：错峰闪烁 */}
                   {ARIES2_LINE_STARS.map((s, i) => (
                     <g key={`ls${i}`} className="btn-spark-shine" style={{ animationDelay: `${s.delay}s` }}>

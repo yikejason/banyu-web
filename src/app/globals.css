@@ -471,17 +471,6 @@ body {
   animation: star-glimmer 2.6s ease-in-out infinite;
 }
 
-/* 星座顶横细丝：虚线缓慢漂移，若隐若现 */
-.aries2-thread {
-  animation: thread-drift 14s linear infinite;
-}
-
-@keyframes thread-drift {
-  to {
-    stroke-dashoffset: -30;
-  }
-}
-
 /* 星周光线：错峰明暗 */
 @keyframes spark-shine {
   0%,
@@ -903,7 +892,6 @@ body {
   .btn-glass-dust,
   .btn-comet,
   .btn-star-glimmer,
-  .aries2-thread,
   .btn-spark-shine,
   .m3-toast {
     animation: none;
