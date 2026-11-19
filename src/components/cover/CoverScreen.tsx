@@ -35,7 +35,8 @@ export function CoverScreen({
         ))}
         <div className="cover-planet absolute bottom-0 left-1/2 h-[46vh] w-[220vw] -translate-x-1/2 md:h-[42vh]" />
       </div>
-      <div className="relative z-10 flex w-full flex-1 flex-col items-center px-6 pb-[5vh] pt-[8.5vh] md:pt-[6.5vh]">
+      {/* 移动端底部留白要避开 fixed 的 ICP 备案号（bottom-[4.5rem]），否则按钮和备案号重叠容易误触 */}
+      <div className="relative z-10 flex w-full flex-1 flex-col items-center px-6 pb-[7.5rem] pt-[8.5vh] md:pb-[5vh] md:pt-[6.5vh]">
         <h1 className="text-center font-black leading-[1.12] tracking-[0.04em] text-white [text-shadow:0_0_36px_rgba(150,125,255,0.35)]">
           <span className="block text-[clamp(2.5rem,16.5vw,5.8rem)]">欢迎来到</span>
           <span className="block text-[clamp(2.65rem,17.5vw,6.2rem)]">伴语星球</span>
