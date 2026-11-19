@@ -446,6 +446,39 @@ body {
   animation: comet-fly 2.6s ease-in-out infinite;
 }
 
+/* 按钮外框流光：白紫光带沿边框环流动（mask 挖出环形，@property 驱动 conic 角度旋转） */
+@property --flow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.btn-flow-ring {
+  background: conic-gradient(
+    from var(--flow-angle),
+    transparent 0deg,
+    rgba(255, 255, 255, 0.9) 30deg,
+    rgba(196, 160, 255, 0.5) 65deg,
+    transparent 105deg,
+    rgba(255, 255, 255, 0.65) 195deg,
+    rgba(176, 138, 248, 0.4) 235deg,
+    transparent 275deg,
+    rgba(255, 255, 255, 0.8) 315deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: border-flow 14s linear infinite;
+}
+
+@keyframes border-flow {
+  to {
+    --flow-angle: 360deg;
+  }
+}
+
 /* 按钮内五角星：呼吸放大闪烁 */
 @keyframes star-glimmer {
   0%,
@@ -892,6 +925,7 @@ body {
   .btn-glass-dust,
   .btn-comet,
   .btn-star-glimmer,
+  .btn-flow-ring,
   .btn-spark-shine,
   .m3-toast {
     animation: none;

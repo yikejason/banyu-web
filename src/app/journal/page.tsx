@@ -157,14 +157,14 @@ export default function JournalPage() {
                 letterSpacing: "0.05em",
                 background: [
                   "linear-gradient(180deg, #352657 0%, #1e1442 35%, #0a0620 100%) padding-box",
-                  "conic-gradient(from 0deg, #ecd9ff 0deg, #b78aec 70deg, #f2e6ff 140deg, #a878e6 210deg, #ecd9ff 280deg, #c49af5 330deg, #ecd9ff 360deg) border-box",
+                  "conic-gradient(from 0deg, #e9ddfc 0deg, #9a6fd4 65deg, #f7f0ff 140deg, #8a5ccb 215deg, #e9ddfc 280deg, #b58ce8 330deg, #e9ddfc 360deg) border-box",
                 ].join(", "),
                 border: "1.5px solid transparent",
                 boxShadow: [
-                  "0 0 12px 2px rgba(238,226,255,0.42)",
-                  "0 0 24px 5px rgba(210,185,255,0.22)",
+                  "0 0 11px 1px rgba(204,176,252,0.34)",
+                  "0 0 20px 4px rgba(152,114,234,0.18)",
                   "0 12px 28px rgba(6,3,16,0.6)",
-                  "inset 0 1px 0 rgba(255,255,255,0.65)",
+                  "inset 0 1px 0 rgba(255,255,255,0.3)",
                   "inset 0 10px 16px rgba(130,100,225,0.28)",
                   "inset 0 -14px 22px rgba(5,2,18,0.75)",
                 ].join(", "),
@@ -176,7 +176,13 @@ export default function JournalPage() {
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-[3px] rounded-full"
-                style={{ border: "1px solid rgba(255,255,255,0.35)" }}
+                style={{ border: "1px solid rgba(222,208,255,0.18)" }}
+              />
+              {/* 边框流光：白紫光带沿外框流动 */}
+              <span
+                aria-hidden
+                className="btn-flow-ring pointer-events-none absolute inset-0 rounded-full"
+                style={{ padding: "1.5px" }}
               />
               {/* 玻璃层：顶部白光 + 不均匀紫色光斑 */}
               <span
@@ -185,7 +191,7 @@ export default function JournalPage() {
                 style={{
                   background: `
                     radial-gradient(70% 90% at 68% 32%, rgba(147,104,240,0.3), transparent 68%),
-                    radial-gradient(120% 38% at 50% -12%, rgba(255,255,255,0.45), transparent 60%)
+                    radial-gradient(120% 38% at 50% -12%, rgba(255,255,255,0.22), transparent 60%)
                   `,
                 }}
               />
@@ -266,14 +272,14 @@ export default function JournalPage() {
                 letterSpacing: "0.05em",
                 background: [
                   "linear-gradient(180deg, #3d2d6e 0%, #241752 35%, #0d0822 100%) padding-box",
-                  "conic-gradient(from 0deg, #ffffff 0deg, #c9a5ff 70deg, #ffffff 140deg, #b57bff 210deg, #ffffff 280deg, #cf9dff 330deg, #ffffff 360deg) border-box",
+                  "conic-gradient(from 0deg, #f3ecff 0deg, #8a5fd8 65deg, #ffffff 140deg, #7a4fd0 215deg, #f3ecff 280deg, #a678e8 330deg, #f3ecff 360deg) border-box",
                 ].join(", "),
                 border: "2px solid transparent",
                 boxShadow: [
-                  "0 0 14px 2px rgba(245,235,255,0.55)",
-                  "0 0 30px 8px rgba(205,175,255,0.35)",
+                  "0 0 12px 2px rgba(216,192,255,0.4)",
+                  "0 0 26px 7px rgba(165,128,245,0.24)",
                   "0 12px 28px rgba(6,3,16,0.6)",
-                  "inset 0 1px 0 rgba(255,255,255,0.7)",
+                  "inset 0 1px 0 rgba(255,255,255,0.35)",
                   "inset 0 10px 16px rgba(150,115,240,0.35)",
                   "inset 0 -14px 22px rgba(6,2,20,0.75)",
                 ].join(", "),
@@ -285,7 +291,13 @@ export default function JournalPage() {
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-[3px] rounded-full"
-                style={{ border: "1px solid rgba(255,255,255,0.42)" }}
+                style={{ border: "1px solid rgba(228,216,255,0.22)" }}
+              />
+              {/* 边框流光：白紫光带沿外框流动 */}
+              <span
+                aria-hidden
+                className="btn-flow-ring pointer-events-none absolute inset-0 rounded-full"
+                style={{ padding: "2px" }}
               />
               {/* 玻璃层：顶部白光 + 图标光晕 + 不均匀紫色光斑 */}
               <span
@@ -295,7 +307,7 @@ export default function JournalPage() {
                   background: `
                     radial-gradient(60% 80% at 74% 30%, rgba(150,105,245,0.32), transparent 66%),
                     radial-gradient(46% 68% at 24% 52%, rgba(236,214,255,0.2), transparent 70%),
-                    radial-gradient(110% 38% at 50% -12%, rgba(255,255,255,0.5), transparent 60%)
+                    radial-gradient(110% 38% at 50% -12%, rgba(255,255,255,0.26), transparent 60%)
                   `,
                 }}
               />
