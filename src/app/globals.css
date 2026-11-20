@@ -585,27 +585,113 @@ body {
   animation-delay: var(--tumble-delay, 0s);
 }
 
-/* 每颗星球转轴与节奏错开 */
-.orb-liujin .orb3d-precess {
-  --tumble-axis-x: 1;
-  --tumble-axis-y: 0.85;
-  --tumble-axis-z: 0.4;
-  --tumble-dur: 6.8s;
-  --tumble-delay: -2.1s;
+/* 心境选择三球漂浮（参考视频：错相漂浮、环静止不转），
+   原来的翻滚进动只保留给 PlanetView 里伙伴立绘的星环 */
+.orb-liujin {
+  --orb-anim: orb-drift-xy 7.2s ease-in-out infinite;
+  --spin-dur: 48s;
+  --glow-dur: 4.8s;
+  --glow-delay: -1.2s;
 }
-.orb-feiyan .orb3d-precess {
-  --tumble-axis-x: 0.9;
-  --tumble-axis-y: 1;
-  --tumble-axis-z: -0.45;
-  --tumble-dur: 7.6s;
-  --tumble-delay: -4.7s;
+.orb-feiyan {
+  --orb-anim: orb-drift-y 4.6s ease-in-out -2.2s infinite alternate;
+  --spin-dur: 60s;
+  --glow-dur: 5.6s;
+  --glow-delay: -2.8s;
 }
-.orb-jingchuan .orb3d-precess {
-  --tumble-axis-x: 1;
-  --tumble-axis-y: 0.7;
-  --tumble-axis-z: 0.3;
-  --tumble-dur: 8.4s;
-  --tumble-delay: -6.2s;
+.orb-jingchuan {
+  --orb-anim: orb-swing-x 4.2s ease-in-out -1.6s infinite alternate;
+  --spin-dur: 54s;
+  --glow-dur: 4.4s;
+  --glow-delay: -0.6s;
+}
+
+.orb-float {
+  animation: var(--orb-anim, orb-drift-y 5s ease-in-out infinite alternate);
+}
+
+/* 光晕：球后一圈柔光，颜色取自每颗星的 --ring，缓慢呼吸 */
+.orb-float::before {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--ring) 52%, transparent) 0%,
+    color-mix(in srgb, var(--ring) 24%, transparent) 46%,
+    transparent 72%
+  );
+  filter: blur(12px);
+  pointer-events: none;
+  animation: orb-glow var(--glow-dur, 5s) ease-in-out var(--glow-delay, 0s) infinite alternate;
+}
+
+@keyframes orb-glow {
+  from {
+    opacity: 0.45;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+/* 自身缓慢旋转：只转球体层（含素材里画的环），浮动与星点不跟着转 */
+.orb-float .orb3d-body {
+  animation: orb-spin var(--spin-dur, 52s) linear infinite;
+}
+.orb-feiyan .orb3d-body {
+  animation-direction: reverse;
+}
+
+@keyframes orb-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 澄光：左右上下斜向缓漂，闭合平滑循环 */
+@keyframes orb-drift-xy {
+  0% {
+    transform: translate(-5px, -3px);
+  }
+  25% {
+    transform: translate(3px, -7px);
+  }
+  50% {
+    transform: translate(6px, 3px);
+  }
+  75% {
+    transform: translate(-3px, 6px);
+  }
+  100% {
+    transform: translate(-5px, -3px);
+  }
+}
+
+/* 蓝漠：上下浮动 */
+@keyframes orb-drift-y {
+  from {
+    transform: translateY(-6px);
+  }
+  to {
+    transform: translateY(7px);
+  }
+}
+
+/* 赤焰：左右摆 */
+@keyframes orb-swing-x {
+  from {
+    transform: translateX(-7px);
+  }
+  to {
+    transform: translateX(7px);
+  }
 }
 
 @keyframes orb-tumble {
@@ -943,6 +1029,9 @@ body {
   .orb3d-precess,
   .orb-sheen,
   .orb-spark,
+  .orb-float,
+  .orb-float::before,
+  .orb-float .orb3d-body,
   .orbit-shimmer,
   .orbit-rotor,
   .orbit-node,
