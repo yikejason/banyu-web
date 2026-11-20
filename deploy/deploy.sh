@@ -39,17 +39,21 @@ if [ "$(node_major)" -lt 20 ]; then
 fi
 
 echo "==> node $(node -v)"
-echo "==> 构建静态包（out/）..."
-npm run build:static
+
+# 发版版本号：构建时经 NEXT_PUBLIC_DEPLOY_V 烙进 JS 包，部署后写进 out/version.json。
+# DeployVersionCheck 拿两者对比，包内旧 ≠ 服务器新 ⇒ 当前页是旧包，自动刷新进最新版
+DEPLOY_V=$(node -e 'console.log(Date.now())')
+
+echo "==> 构建静态包（out/，版本号 ${DEPLOY_V}）..."
+NEXT_PUBLIC_DEPLOY_V="${DEPLOY_V}" npm run build:static
 
 if [ ! -d out ]; then
   echo "构建产物 out/ 不存在，检查 next.config.ts 是否配置 output: \"export\"" >&2
   exit 1
 fi
 
-# 写入发版版本号：客户端 DeployVersionCheck 轮询对比，发现新版本自动刷新进最新页
-echo "==> 写入版本号 out/version.json ..."
-node -e "require('fs').writeFileSync('out/version.json', JSON.stringify({ v: Date.now() }))"
+echo "==> 写入版本号 out/version.json（v=${DEPLOY_V}）..."
+node -e "require('fs').writeFileSync('out/version.json', JSON.stringify({ v: ${DEPLOY_V} }))"
 
 echo "==> 上传到 root@${SERVER_IP}:${REMOTE_DIR}/ ..."
 # 有 rsync 走 rsync；没有（Windows Git Bash 默认不带）则 tar 经 ssh 流式上传，
