@@ -29,15 +29,55 @@ export function DollSelectScreen({
                     }`}
                 >
               <span
-                className={`orb-halo orb-${doll.id} orb-float relative block h-28 w-28`}
+                className={`orb-halo orb3d orb-${doll.id} orb-float relative block h-28 w-28`}
                 style={{ "--ring": doll.ring } as CSSProperties}
               >
-                {/* 球：PNG 素材（环已画在图里，随球静止）+ 高光漂移（mask 裁出球轮廓） */}
+                {/* 外层光圈：代码画的 3D 细环，按参考视频绕各自轴转动，
+                    整圈进动（tumble）与缓摆（sway）两层错开，前后穿插靠 preserve-3d */}
+                <span className="orb3d-precess" aria-hidden>
+                  <span className="orb3d-ring orb3d-ring-a" aria-hidden />
+                  <span className="orb3d-ring orb3d-ring-b" aria-hidden />
+                </span>
+                <span className="orb3d-sway" aria-hidden>
+                  <span className="orb3d-ring orb3d-ring-c" aria-hidden />
+                  <span className="orb3d-ring orb3d-ring-d" aria-hidden>
+                    <span className="orb3d-ring-dash" aria-hidden />
+                  </span>
+                </span>
+                {/* 行星环：贴球紧环绕，像土星环一样固定倾角围在星球周围，
+                    亮弧沿环轨道公转，远端转到球后、近端扫过球前；
+                    a=主环 b/c=副环（默认隐藏，按星球启用） */}
+                <span className="orb3d-orbit" aria-hidden>
+                  <span className="orb3d-ring-plane orb3d-plane-a" aria-hidden>
+                    <span className="orb3d-ring-track" aria-hidden />
+                    <span className="orb3d-ring-track orb3d-ring-track-outer" aria-hidden />
+                    <span className="orb3d-orbit-rotor" aria-hidden>
+                      <span className="orb3d-ring-arc" aria-hidden />
+                    </span>
+                  </span>
+                  <span className="orb3d-ring-plane orb3d-plane-b" aria-hidden>
+                    <span className="orb3d-yaw" aria-hidden>
+                      <span className="orb3d-ring-pose" aria-hidden>
+                        <span className="orb3d-ring-track" aria-hidden />
+                        <span className="orb3d-orbit-rotor" aria-hidden>
+                          <span className="orb3d-ring-arc" aria-hidden />
+                        </span>
+                      </span>
+                    </span>
+                  </span>
+                  <span className="orb3d-ring-plane orb3d-plane-c" aria-hidden>
+                    <span className="orb3d-ring-track" aria-hidden />
+                    <span className="orb3d-orbit-rotor" aria-hidden>
+                      <span className="orb3d-ring-arc" aria-hidden />
+                    </span>
+                  </span>
+                </span>
+                {/* 球：PNG 素材（已烘入裁净旧星环，只留球体）+ 高光漂移 */}
                 <span className="orb3d-body">
                   <img
                     src={doll.src}
                     alt=""
-                    className="h-full w-full object-contain drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)]"
+                    className="h-full w-full object-contain"
                   />
                   <span
                     className="orb-sheen"
