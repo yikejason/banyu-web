@@ -861,6 +861,20 @@ body {
 .orb-jingchuan .orb3d-plane-a {
   --ring: #ffdca6;
 }
+/* 蓝漠：不要游走的宽亮弧（横环/竖环都只留细线环带） */
+.orb-feiyan .orb3d-plane-a .orb3d-ring-arc,
+.orb-feiyan .orb3d-plane-b .orb3d-ring-arc {
+  display: none;
+}
+/* 蓝漠横环加宽：椭圆向左右两边扩展 */
+.orb-feiyan .orb3d-plane-a {
+  --ring-size: 96%;
+  --ring-open: 77deg;
+}
+/* 蓝漠：横环只留单线（一个光环） */
+.orb-feiyan .orb3d-plane-a .orb3d-ring-track-outer {
+  display: none;
+}
 .orb-liujin .orb3d-plane-a .orb3d-ring-track,
 .orb-feiyan .orb3d-plane-a .orb3d-ring-track,
 .orb-jingchuan .orb3d-plane-a .orb3d-ring-track {
@@ -870,6 +884,18 @@ body {
     0 0 6px color-mix(in srgb, var(--ring) 60%, transparent),
     inset 0 0 6px color-mix(in srgb, var(--ring) 40%, transparent);
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ring) 55%, transparent));
+}
+/* 内环尺寸：只作用于纯内环（:not 排除带双类的外环元素，避免覆盖外环的 -8%） */
+.orb-liujin .orb3d-plane-a .orb3d-ring-track:not(.orb3d-ring-track-outer),
+.orb-feiyan .orb3d-plane-a .orb3d-ring-track:not(.orb3d-ring-track-outer),
+.orb-jingchuan .orb3d-plane-a .orb3d-ring-track:not(.orb3d-ring-track-outer) {
+  inset: 4%;
+}
+/* 内环尺寸：只作用于纯内环（:not 排除带双类的外环元素，避免覆盖外环的 -8%） */
+.orb-liujin .orb3d-plane-a .orb3d-ring-track:not(.orb3d-ring-track-outer),
+.orb-feiyan .orb3d-plane-a .orb3d-ring-track:not(.orb3d-ring-track-outer),
+.orb-jingchuan .orb3d-plane-a .orb3d-ring-track:not(.orb3d-ring-track-outer) {
+  inset: 4%;
 }
 .orb-liujin .orb3d-plane-a .orb3d-ring-track-outer,
 .orb-feiyan .orb3d-plane-a .orb3d-ring-track-outer,
@@ -892,21 +918,49 @@ body {
 .orb-feiyan .orb3d-plane-b,
 .orb-jingchuan .orb3d-plane-b {
   display: block;
-  --ring-size: 80%;
+  --ring-size: 88%;
   --ring-x: 50%;
-  --ring-y: 40%;
-  --ring-tilt: -8deg;
+  --ring-y: 50%;
+  --ring-tilt: -4deg;
   --ring-open: 0deg;
-  --ring-lean: 66deg;
+  --ring-lean: 48deg;
   --orbit-dur: 12s;
+  /* 整环完全后移到球平面后方：侧臂被球体挡住（不再出现穿面竖线），
+     只露球顶上方拱弧与球底下方弧段，上下对称 */
+  --ring-z: -44px;
+  transform: translateZ(var(--ring-z, 0px)) rotateZ(var(--ring-tilt, 0deg))
+    rotateY(var(--ring-tilt-y, 0deg)) rotateX(var(--ring-open, 0deg));
 }
 .orb-feiyan .orb3d-plane-b {
   --ring: #8ecdff;
+  /* 缩小：环径略大于球，上下各露一段小弧，中段藏球后 */
+  --ring-size: 76%;
+  --ring-lean: 62deg;
+  --ring-tilt: -4deg;
+  animation: orb-tilt-sway-blue 9s ease-in-out infinite alternate;
+}
+@keyframes orb-tilt-sway-blue {
+  from {
+    --ring-tilt: -14deg;
+  }
+  to {
+    --ring-tilt: 14deg;
+  }
 }
 .orb-jingchuan .orb3d-plane-b {
   --ring: #ff9bbb;
 }
-.orb-feiyan .orb3d-plane-b .orb3d-ring-track,
+.orb-feiyan .orb3d-plane-b .orb3d-ring-track {
+  /* 蓝漠竖环：金球同款双线竖放（恒定可见，不做呼吸暗相） */
+  inset: 10%;
+  border-color: color-mix(in srgb, #fff 55%, var(--ring));
+  border-width: 2px;
+  opacity: 0.9;
+  box-shadow:
+    0 0 6px color-mix(in srgb, var(--ring) 60%, transparent),
+    inset 0 0 6px color-mix(in srgb, var(--ring) 40%, transparent);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ring) 55%, transparent));
+}
 .orb-jingchuan .orb3d-plane-b .orb3d-ring-track {
   border-color: color-mix(in srgb, var(--ring) 85%, transparent);
   border-width: 2px;
@@ -919,7 +973,26 @@ body {
   border-bottom-color: color-mix(in srgb, var(--ring) 90%, white 10%);
   border-left-color: color-mix(in srgb, var(--ring) 55%, transparent);
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ring) 80%, transparent));
-  animation: orb-arc-pulse 11s linear infinite;
+  animation: orb-arc-pulse 8s linear infinite;
+}
+
+/* ===== 蓝漠专属精调（须在共享规则之后，同等优先级下后者生效）===== */
+/* 横环：一道细光环（1.5px、亮度收敛） */
+.orb-feiyan .orb3d-plane-a .orb3d-ring-track {
+  border-width: 1.5px;
+  border-color: color-mix(in srgb, #fff 35%, var(--ring) 65%, transparent);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--ring) 40%, transparent);
+}
+/* 竖环嵌套对：内竖环(主环 2px) + 外竖环发光线（更大更亮，像金球内外双线） */
+.orb-feiyan .orb3d-plane-b .orb3d-ring-track-outer {
+  display: block;
+  position: absolute;
+  inset: -6%;
+  border-radius: 50%;
+  border-color: color-mix(in srgb, #fff 40%, var(--ring) 60%);
+  border-width: 2px;
+  opacity: 0.88;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--ring) 55%, transparent);
 }
 /* plane-c（细金回声弧）已按用户要求移除——每球只保留横环 + 拱环两道光圈 */
 
