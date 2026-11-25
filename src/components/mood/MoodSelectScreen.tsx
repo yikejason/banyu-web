@@ -30,11 +30,13 @@ export function MoodSelectScreen({
             onClick={() => pick(companion.id)}
             className={`gender-char-btn ${isBoy ? "gender-char-boy" : "gender-char-girl"} ${active ? "is-on" : ""}`}
           >
-            <img
-              src={isBoy ? "/gender/boy.png?v=6" : "/gender/girl.png?v=6"}
-              alt=""
+            {/* 走路序列帧精灵图：一个完整步态周期正向循环（男生 14 帧/1.17s，女生 17 帧/1.42s），
+                选中播放/未选静止在第 0 帧 */}
+            <span
               className="gender-char"
-              draggable={false}
+              style={{
+                backgroundImage: `url(${isBoy ? "/gender/boy-walk.webp" : "/gender/girl-walk.webp"})`,
+              }}
             />
             <span className="gender-feet-glow" aria-hidden />
           </button>
