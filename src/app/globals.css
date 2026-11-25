@@ -664,12 +664,27 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 1.5px solid color-mix(in srgb, var(--ring) 36%, transparent);
+  border: 2px solid color-mix(in srgb, var(--ring) 55%, transparent);
 }
 .orb3d-ring-track-outer {
   inset: -8%;
-  border-width: 1px;
-  opacity: 0.75;
+  border-width: 1.5px;
+  opacity: 0.85;
+}
+/* 轨道环呼吸（pulse，非 flash）：环线连同辉光整体低幅明暗起伏，
+   节奏比球体本体慢，营造幽幽微光、慢慢闪动的氛围；
+   各星球专属动画（如赤焰竖环 orb-breathe）按更高优先级自然覆盖 */
+.orb3d-ring-track,
+.orb3d-ring-track-outer {
+  animation: orb-ring-breathe 5s ease-in-out infinite alternate;
+}
+@keyframes orb-ring-breathe {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* 公转层：亮弧绕环面法线匀速转一圈（局部 rotateZ 即沿环轨运行） */
@@ -722,18 +737,18 @@ body {
 
 /* 心境选择三球：固定位置，只有球体极缓慢的自转 + 光晕呼吸（不漂移不晃动） */
 .orb-liujin {
-  --spin-dur: 88s;
-  --glow-dur: 4.8s;
+  --spin-dur: 44s;
+  --glow-dur: 2.8s;
   --glow-delay: -1.2s;
 }
 .orb-feiyan {
-  --spin-dur: 104s;
-  --glow-dur: 5.6s;
+  --spin-dur: 52s;
+  --glow-dur: 3.2s;
   --glow-delay: -2.8s;
 }
 .orb-jingchuan {
-  --spin-dur: 96s;
-  --glow-dur: 4.4s;
+  --spin-dur: 48s;
+  --glow-dur: 2.6s;
   --glow-delay: -0.6s;
 }
 
@@ -855,21 +870,48 @@ body {
   --ring-y: 50%;
   --ring-tilt: -6deg;
   --ring-open: 70deg;
-  --orbit-dur: 9.5s;
+  --orbit-dur: 6s;
   --orbit-delay: -2.6s;
 }
 .orb-jingchuan .orb3d-plane-a {
-  --ring: #ffdca6;
+  /* 横双环用球体暗部的玫瑰红（不再用高饱和正红，更贴球身本色）；
+     环更扁（开角加大）、更长（环径加宽）；
+     运动只做倾角摆动（-14°↔-26°，始终比金球横环更斜），
+     不做环径缩放（变大变小观感差，已去除）；4s 均匀节奏 */
+  --ring: #f25a70;
+  --ring-size: 88%;
+  --ring-open: 78deg;
+  --ring-tilt: -20deg;
+  animation: orb-sway-red-a 4s ease-in-out -1.2s infinite alternate;
+}
+@keyframes orb-sway-red-a {
+  from {
+    --ring-tilt: -14deg;
+  }
+  to {
+    --ring-tilt: -26deg;
+  }
 }
 /* 蓝漠：不要游走的宽亮弧（横环/竖环都只留细线环带） */
 .orb-feiyan .orb3d-plane-a .orb3d-ring-arc,
 .orb-feiyan .orb3d-plane-b .orb3d-ring-arc {
   display: none;
 }
-/* 蓝漠横环加宽：椭圆向左右两边扩展 */
+/* 蓝漠横环：拉长更扁更尖（环径加宽、开角加大），
+   并左右摆动（+16°↔-16°、5.5s/半程，比金球 6s、赤焰 7s 都快） */
 .orb-feiyan .orb3d-plane-a {
-  --ring-size: 96%;
-  --ring-open: 77deg;
+  --ring-size: 100%;
+  --ring-open: 80deg;
+  --ring-tilt: -6deg;
+  animation: orb-tilt-sway-blue-a 3.6s ease-in-out -1.4s infinite alternate;
+}
+@keyframes orb-tilt-sway-blue-a {
+  from {
+    --ring-tilt: 16deg;
+  }
+  to {
+    --ring-tilt: -16deg;
+  }
 }
 /* 蓝漠：横环只留单线（一个光环） */
 .orb-feiyan .orb3d-plane-a .orb3d-ring-track-outer {
@@ -878,12 +920,14 @@ body {
 .orb-liujin .orb3d-plane-a .orb3d-ring-track,
 .orb-feiyan .orb3d-plane-a .orb3d-ring-track,
 .orb-jingchuan .orb3d-plane-a .orb3d-ring-track {
-  border-color: color-mix(in srgb, #fff 55%, var(--ring));
-  border-width: 2px;
+  border-color: color-mix(in srgb, #fff 68%, var(--ring));
+  border-width: 2.5px;
   box-shadow:
-    0 0 6px color-mix(in srgb, var(--ring) 60%, transparent),
-    inset 0 0 6px color-mix(in srgb, var(--ring) 40%, transparent);
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ring) 55%, transparent));
+    0 0 8px color-mix(in srgb, var(--ring) 75%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--ring) 55%, transparent);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ring) 75%, transparent))
+    drop-shadow(0 0 14px color-mix(in srgb, var(--ring) 40%, transparent))
+    drop-shadow(0 0 28px color-mix(in srgb, var(--ring) 24%, transparent));
 }
 /* 内环尺寸：只作用于纯内环（:not 排除带双类的外环元素，避免覆盖外环的 -8%） */
 .orb-liujin .orb3d-plane-a .orb3d-ring-track:not(.orb3d-ring-track-outer),
@@ -900,9 +944,12 @@ body {
 .orb-liujin .orb3d-plane-a .orb3d-ring-track-outer,
 .orb-feiyan .orb3d-plane-a .orb3d-ring-track-outer,
 .orb-jingchuan .orb3d-plane-a .orb3d-ring-track-outer {
-  border-color: color-mix(in srgb, #fff 30%, var(--ring) 70%);
-  border-width: 1.5px;
-  opacity: 0.9;
+  border-color: color-mix(in srgb, #fff 45%, var(--ring) 55%);
+  border-width: 2px;
+  opacity: 1;
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--ring) 60%, transparent),
+    0 0 30px color-mix(in srgb, var(--ring) 32%, transparent);
 }
 .orb-liujin .orb3d-plane-a .orb3d-ring-arc,
 .orb-feiyan .orb3d-plane-a .orb3d-ring-arc,
@@ -915,6 +962,24 @@ body {
   /* 亮弧边公转边淡出淡入（先清晰→消失→再出现） */
   animation: orb-arc-pulse var(--orbit-dur, 9.5s) linear infinite;
 }
+/* 赤焰横环专属：双环走球体本红（不往白里调）；
+   去掉一直公转的宽亮弧（视觉上像游走的宽阴影），内环收成细光环 */
+.orb-jingchuan .orb3d-plane-a .orb3d-ring-arc {
+  display: none;
+}
+.orb-jingchuan .orb3d-plane-a .orb3d-ring-track {
+  border-color: color-mix(in srgb, var(--ring) 85%, transparent);
+  border-width: 2.5px;
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--ring) 70%, transparent),
+    0 0 20px color-mix(in srgb, var(--ring) 38%, transparent);
+}
+.orb-jingchuan .orb3d-plane-a .orb3d-ring-track-outer {
+  border-color: color-mix(in srgb, var(--ring) 72%, transparent);
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--ring) 55%, transparent),
+    0 0 28px color-mix(in srgb, var(--ring) 30%, transparent);
+}
 .orb-feiyan .orb3d-plane-b,
 .orb-jingchuan .orb3d-plane-b {
   display: block;
@@ -924,7 +989,7 @@ body {
   --ring-tilt: -4deg;
   --ring-open: 0deg;
   --ring-lean: 48deg;
-  --orbit-dur: 12s;
+  --orbit-dur: 7s;
   /* 整环完全后移到球平面后方：侧臂被球体挡住（不再出现穿面竖线），
      只露球顶上方拱弧与球底下方弧段，上下对称 */
   --ring-z: -44px;
@@ -933,11 +998,11 @@ body {
 }
 .orb-feiyan .orb3d-plane-b {
   --ring: #8ecdff;
-  /* 缩小：环径略大于球，上下各露一段小弧，中段藏球后 */
-  --ring-size: 76%;
-  --ring-lean: 62deg;
+  /* 环径加大：上下出头更多；lean 加大：竖椭圆更扁、更尖 */
+  --ring-size: 92%;
+  --ring-lean: 71deg;
   --ring-tilt: -4deg;
-  animation: orb-tilt-sway-blue 9s ease-in-out infinite alternate;
+  animation: orb-tilt-sway-blue 5.5s ease-in-out infinite alternate;
 }
 @keyframes orb-tilt-sway-blue {
   from {
@@ -947,25 +1012,66 @@ body {
     --ring-tilt: 14deg;
   }
 }
+/* 赤焰竖环运动：幅度更大（+24°↔-16°）、更快（7s/半程），同时环径呼吸
+   （86%↔98%，时而缩小时而拉长）；蓝漠为 ±14°/9s 无缩放，节奏错开 */
+@property --ring-size {
+  syntax: "<percentage>";
+  initial-value: 94%;
+  inherits: false;
+}
+@keyframes orb-sway-red {
+  from {
+    --ring-tilt: 24deg;
+    --ring-size: 86%;
+  }
+  to {
+    --ring-tilt: -16deg;
+    --ring-size: 98%;
+  }
+}
 .orb-jingchuan .orb3d-plane-b {
-  --ring: #ff9bbb;
+  /* 竖环与横环同色（玫瑰红）；lean 74° 更尖更椭圆；
+     z 后移（共享块 -44px）藏中段，上下出头明显 */
+  --ring: #f25a70;
+  --ring-size: 92%;
+  --ring-lean: 74deg;
+  --ring-tilt: -4deg;
+  animation: orb-sway-red 2.4s ease-in-out -1.8s infinite alternate;
 }
 .orb-feiyan .orb3d-plane-b .orb3d-ring-track {
-  /* 蓝漠竖环：金球同款双线竖放（恒定可见，不做呼吸暗相） */
-  inset: 10%;
-  border-color: color-mix(in srgb, #fff 55%, var(--ring));
-  border-width: 2px;
-  opacity: 0.9;
+  /* 蓝漠竖环：金球同款双线竖放（恒定可见，不做呼吸暗相）；
+     inset 收到 2%：内环贴近外环（尖端处几乎相贴），双线更明显 */
+  inset: 2%;
+  border-color: color-mix(in srgb, #fff 68%, var(--ring));
+  border-width: 2.5px;
+  opacity: 1;
   box-shadow:
-    0 0 6px color-mix(in srgb, var(--ring) 60%, transparent),
-    inset 0 0 6px color-mix(in srgb, var(--ring) 40%, transparent);
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ring) 55%, transparent));
+    0 0 8px color-mix(in srgb, var(--ring) 75%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--ring) 55%, transparent);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ring) 70%, transparent))
+    drop-shadow(0 0 11px color-mix(in srgb, var(--ring) 32%, transparent));
 }
 .orb-jingchuan .orb3d-plane-b .orb3d-ring-track {
-  border-color: color-mix(in srgb, var(--ring) 85%, transparent);
-  border-width: 2px;
-  box-shadow: 0 0 4px color-mix(in srgb, var(--ring) 50%, transparent);
+  border-color: color-mix(in srgb, var(--ring) 95%, transparent);
+  border-width: 2.5px;
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--ring) 75%, transparent),
+    0 0 20px color-mix(in srgb, var(--ring) 40%, transparent);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--ring) 42%, transparent));
   animation: orb-breathe var(--orbit-dur, 12s) ease-in-out infinite;
+}
+/* 赤焰竖环外圈：同蓝漠提亮加粗（原来走基础样式太淡） */
+.orb-jingchuan .orb3d-plane-b .orb3d-ring-track-outer {
+  border-color: color-mix(in srgb, var(--ring) 75%, transparent);
+  border-width: 1.5px;
+  opacity: 0.9;
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--ring) 70%, transparent),
+    0 0 20px color-mix(in srgb, var(--ring) 36%, transparent);
+}
+/* 赤焰竖环：公转亮弧在斜置环面顶端会渲染成一根竖线，去掉亮弧只留双线环带 */
+.orb-jingchuan .orb3d-plane-b .orb3d-ring-arc {
+  display: none;
 }
 .orb-feiyan .orb3d-plane-b .orb3d-ring-arc,
 .orb-jingchuan .orb3d-plane-b .orb3d-ring-arc {
@@ -973,26 +1079,30 @@ body {
   border-bottom-color: color-mix(in srgb, var(--ring) 90%, white 10%);
   border-left-color: color-mix(in srgb, var(--ring) 55%, transparent);
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ring) 80%, transparent));
-  animation: orb-arc-pulse 8s linear infinite;
+  animation: orb-arc-pulse 5s linear infinite;
 }
 
 /* ===== 蓝漠专属精调（须在共享规则之后，同等优先级下后者生效）===== */
-/* 横环：一道细光环（1.5px、亮度收敛） */
+/* 横环：一道细光环（2px、亮度提高）+ 光晕 */
 .orb-feiyan .orb3d-plane-a .orb3d-ring-track {
-  border-width: 1.5px;
-  border-color: color-mix(in srgb, #fff 35%, var(--ring) 65%, transparent);
-  box-shadow: 0 0 4px color-mix(in srgb, var(--ring) 40%, transparent);
+  border-width: 2px;
+  border-color: color-mix(in srgb, #fff 55%, var(--ring) 45%, transparent);
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--ring) 70%, transparent),
+    0 0 20px color-mix(in srgb, var(--ring) 38%, transparent);
 }
-/* 竖环嵌套对：内竖环(主环 2px) + 外竖环发光线（更大更亮，像金球内外双线） */
+/* 竖环嵌套对：内竖环(主环 2.5px) + 外竖环发光线（更大更亮，像金球内外双线） */
 .orb-feiyan .orb3d-plane-b .orb3d-ring-track-outer {
   display: block;
   position: absolute;
   inset: -6%;
   border-radius: 50%;
-  border-color: color-mix(in srgb, #fff 40%, var(--ring) 60%);
+  border-color: color-mix(in srgb, #fff 45%, var(--ring) 55%);
   border-width: 2px;
-  opacity: 0.88;
-  box-shadow: 0 0 6px color-mix(in srgb, var(--ring) 55%, transparent);
+  opacity: 0.95;
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--ring) 70%, transparent),
+    0 0 20px color-mix(in srgb, var(--ring) 38%, transparent);
 }
 /* plane-c（细金回声弧）已按用户要求移除——每球只保留横环 + 拱环两道光圈 */
 
@@ -1023,16 +1133,18 @@ body {
   --ring-size: 78%;
   --ring-y: 47%;
   --ring-tilt: -14deg;
-  animation: orb-open-sway 6s ease-in-out infinite alternate;
+  animation: orb-open-sway 4s ease-in-out infinite alternate;
 }
 @keyframes orb-open-sway {
   from {
+    /* 摆动的起点＝当前姿态 */
     --ring-open: 76deg;
     --ring-tilt: -12deg;
   }
   to {
-    --ring-open: 72deg;
-    --ring-tilt: -20deg;
+    /* 摆动的终点＝新姿态：比赤焰横环（-20°）更斜 */
+    --ring-open: 70deg;
+    --ring-tilt: -26deg;
   }
 }
 .orb-liujin .orb3d-plane-a .orb3d-ring-arc {
@@ -1040,13 +1152,14 @@ body {
   display: none;
 }
 .orb-liujin .orb3d-plane-a .orb3d-ring-track {
-  /* 内环：与外圈留一小段间隔，光晕若即若离 */
+  /* 内环：与外圈留一小段间隔；同样加柔和光晕（参考图同款） */
   inset: 4%;
   border-color: color-mix(in srgb, #fff 32%, var(--ring) 68%, transparent);
   border-width: 1.5px;
-  opacity: 0.78;
-  box-shadow: 0 0 4px color-mix(in srgb, var(--ring) 40%, transparent);
-  filter: none;
+  opacity: 0.85;
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--ring) 60%, transparent),
+    0 0 20px color-mix(in srgb, var(--ring) 32%, transparent);
 }
 .orb-liujin .orb3d-plane-a .orb3d-ring-track-outer {
   /* 外环：亮边在外侧，与内环贴合 */
@@ -1075,16 +1188,16 @@ body {
 }
 @keyframes orb-breathe {
   0% {
-    opacity: 0.25;
+    opacity: 0.55;
   }
   30% {
     opacity: 1;
   }
   65% {
-    opacity: 0.3;
+    opacity: 0.6;
   }
   100% {
-    opacity: 0.25;
+    opacity: 0.55;
   }
 }
 @keyframes orb-echo {
@@ -1124,6 +1237,29 @@ body {
   align-items: center;
   justify-content: center;
   transform: translateZ(0);
+}
+.orb3d-body img {
+  /* 球体贴图提清晰：降采样优化（-webkit-optimize-contrast）
+     + 轻微提升对比/饱和，抵消缩放与合成层带来的发糊感 */
+  image-rendering: -webkit-optimize-contrast;
+  /* Glow 自发光（Bloom 底噪）：双层辉光——近晕勾亮球缘、远晕柔和溢出 */
+  filter: contrast(1.05) saturate(1.08) brightness(1.04)
+    drop-shadow(0 0 6px color-mix(in srgb, var(--ring) 45%, transparent))
+    drop-shadow(0 0 16px color-mix(in srgb, var(--ring) 26%, transparent));
+  /* 缓慢呼吸脉冲：辉光与亮度低幅缓起伏（4s，pulse 非 flash） */
+  animation: orb-body-breathe 4s ease-in-out infinite alternate;
+}
+@keyframes orb-body-breathe {
+  from {
+    filter: contrast(1.05) saturate(1.08) brightness(1.02)
+      drop-shadow(0 0 5px color-mix(in srgb, var(--ring) 38%, transparent))
+      drop-shadow(0 0 13px color-mix(in srgb, var(--ring) 20%, transparent));
+  }
+  to {
+    filter: contrast(1.05) saturate(1.08) brightness(1.07)
+      drop-shadow(0 0 8px color-mix(in srgb, var(--ring) 52%, transparent))
+      drop-shadow(0 0 19px color-mix(in srgb, var(--ring) 32%, transparent));
+  }
 }
 
 /* 高光漂移：mask 裁成球的轮廓，亮斑在球面上缓慢游移，玻璃质感“活”起来 */
@@ -1183,7 +1319,7 @@ body {
   border-radius: 9999px;
   background: #fff;
   box-shadow: 0 0 8px 2px color-mix(in srgb, var(--ring) 60%, transparent);
-  animation: planet-twinkle 3.4s ease-in-out infinite;
+  animation: planet-twinkle 2.2s ease-in-out infinite;
   pointer-events: none;
 }
 
@@ -1423,3 +1559,184 @@ body {
   box-shadow: 0 0 24px color-mix(in srgb, var(--md-sys-color-primary) 32%, transparent);
 }
 
+
+/* ===== 人物选择页：地面光效动效 + 人物微动 ===== */
+/* 人物缓慢浮动：底部为轴的轻微放大/微旋，不露出任何边缘 */
+.mood-char {
+  transform-origin: 50% 100%;
+  animation: mood-char-bob 4s ease-in-out infinite alternate;
+}
+@keyframes mood-char-bob {
+  from {
+    transform: scale(1) rotate(0deg);
+  }
+  to {
+    transform: scale(1.035) rotate(0.4deg);
+  }
+}
+
+/* 地面光圈：脚下星云光垫，低幅呼吸 */
+.mood-ground-glow {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 4%;
+  height: 26%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse closest-side,
+    rgba(196, 150, 255, 0.5) 0%,
+    rgba(150, 100, 230, 0.26) 55%,
+    transparent 75%
+  );
+  filter: blur(6px);
+  animation: mood-ground-pulse 3.2s ease-in-out infinite alternate;
+}
+@keyframes mood-ground-pulse {
+  from {
+    opacity: 0.45;
+    transform: scaleX(0.96);
+  }
+  to {
+    opacity: 0.95;
+    transform: scaleX(1.05);
+  }
+}
+
+/* 环绕光弧：沿地面椭圆轨道旋转的一道光（conic 角度插值） */
+@property --mood-sweep {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.mood-ground-sweep {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 3%;
+  height: 30%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from var(--mood-sweep),
+    transparent 0deg,
+    transparent 235deg,
+    rgba(225, 185, 255, 0.05) 285deg,
+    rgba(235, 200, 255, 0.8) 330deg,
+    transparent 360deg
+  );
+  -webkit-mask: radial-gradient(
+    closest-side,
+    transparent 70%,
+    #000 86%,
+    #000 94%,
+    transparent 100%
+  );
+  mask: radial-gradient(
+    closest-side,
+    transparent 70%,
+    #000 86%,
+    #000 94%,
+    transparent 100%
+  );
+  filter: blur(2px);
+  animation: mood-sweep-spin 7s linear infinite;
+}
+@keyframes mood-sweep-spin {
+  from {
+    --mood-sweep: 0deg;
+  }
+  to {
+    --mood-sweep: 360deg;
+  }
+}
+
+/* 身边氤氲光：人物周身淡淡的星云光，缓慢呼吸 */
+.mood-aura {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 16%;
+  height: 54%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse closest-side,
+    rgba(210, 170, 255, 0.3) 0%,
+    rgba(190, 150, 255, 0.15) 45%,
+    transparent 72%
+  );
+  filter: blur(8px);
+  animation: mood-aura-pulse 3.2s ease-in-out infinite alternate;
+}
+@keyframes mood-aura-pulse {
+  from {
+    opacity: 0.35;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 0.8;
+    transform: scale(1.04);
+  }
+}
+
+/* 两个人物错相：动效不同步，画面更活 */
+button:nth-child(2) .mood-char {
+  animation-delay: -2s;
+}
+button:nth-child(2) .mood-ground-glow {
+  animation-delay: -1.6s;
+}
+button:nth-child(2) .mood-ground-sweep {
+  animation-delay: -3.5s;
+}
+button:nth-child(2) .mood-aura {
+  animation-delay: -1.6s;
+}
+
+/* ===== 封面标题：香槟金渐变 + 柔和金晕（参考样片样式）===== */
+.cover-title {
+  background: linear-gradient(
+    180deg,
+    #fff8e2 4%,
+    #ffeab2 32%,
+    #ecc377 52%,
+    #c9973f 68%,
+    #f7e2ac 86%,
+    #fff3cf 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 12px rgba(255, 224, 150, 0.4))
+    drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+  font-size: clamp(2.1rem, 10.4vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+/* 封面副标题：淡紫光晕（参考样片样式） */
+.cover-subtitle {
+  color: #ded7ff;
+  font-size: clamp(1rem, 4.2vw, 1.4rem);
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-shadow:
+    0 0 14px rgba(178, 148, 255, 0.6),
+    0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+/* ===== 封面背景视频运镜：星云从左向右缓慢漂移 + 逐渐放大 =====
+   长周期往复（28s 单程）+ ease-in-out：全程平滑无跳变，肉眼看是连续运镜 */
+.cover-video {
+  transform-origin: 50% 30%;
+  animation: cover-video-drift 28s ease-in-out infinite alternate;
+}
+@keyframes cover-video-drift {
+  from {
+    transform: scale(1.3) translateX(-5%);
+  }
+  to {
+    transform: scale(1.52) translateX(3.5%);
+  }
+}
