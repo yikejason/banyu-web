@@ -1546,6 +1546,9 @@ body {
   .btn-spark-shine,
   .m3-toast,
   .gender-confirm,
+  .gender-aura,
+  .gender-motes i,
+  .gender-feet-light,
   .gender-char-btn.is-on .gender-char {
     animation: none;
   }
@@ -1616,6 +1619,8 @@ body {
 
 .gender-char {
   display: block;
+  position: relative;
+  z-index: 1; /* 光晕垫底、光尘/脚下光在前，以人物精灵图为基准分层 */
   height: 100%;
   aspect-ratio: 1 / 2;
   background-repeat: no-repeat;
@@ -1623,6 +1628,163 @@ body {
   transform-origin: 50% 100%;
   filter: brightness(1) saturate(1);
   transition: filter 0.35s ease, opacity 0.35s ease;
+}
+
+/* 身后呼吸光晕：柔和紫光随呼吸缓缓明暗（垫在人物身后，男女相位错开） */
+.gender-aura {
+  position: absolute;
+  left: 50%;
+  top: 2%;
+  width: 180%;
+  height: 88%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse closest-side,
+    rgba(224, 208, 255, 0.55) 0%,
+    rgba(186, 156, 255, 0.34) 40%,
+    rgba(150, 120, 245, 0.16) 62%,
+    transparent 76%
+  );
+  filter: blur(6px);
+  animation: gender-aura-breathe 4.6s ease-in-out infinite;
+}
+.gender-char-girl .gender-aura {
+  animation-delay: -2.3s;
+}
+@keyframes gender-aura-breathe {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.08);
+  }
+}
+
+/* 环绕上升的光尘：细小星屑从脚边升起、掠过身侧飘过头顶，男女节奏错开 */
+.gender-motes {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.gender-motes i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(206, 186, 255, 0.85) 45%,
+    transparent 74%
+  );
+  box-shadow: 0 0 9px 2px rgba(205, 185, 255, 0.65);
+  opacity: 0;
+  animation: gender-mote-rise 6.5s linear infinite;
+}
+.gender-motes i:nth-child(1) {
+  left: 14%;
+  bottom: 16%;
+  animation-delay: -0.6s;
+}
+.gender-motes i:nth-child(2) {
+  left: 34%;
+  bottom: 30%;
+  width: 4px;
+  height: 4px;
+  animation-delay: -2.4s;
+  animation-duration: 7.6s;
+}
+.gender-motes i:nth-child(3) {
+  left: 58%;
+  bottom: 10%;
+  animation-delay: -4.1s;
+  animation-duration: 5.8s;
+}
+.gender-motes i:nth-child(4) {
+  left: 78%;
+  bottom: 34%;
+  width: 6px;
+  height: 6px;
+  animation-delay: -1.5s;
+  animation-duration: 8.2s;
+}
+.gender-motes i:nth-child(5) {
+  left: 48%;
+  bottom: 22%;
+  width: 4px;
+  height: 4px;
+  animation-delay: -5.2s;
+  animation-duration: 6.9s;
+}
+.gender-motes i:nth-child(6) {
+  left: 8%;
+  bottom: 42%;
+  width: 4px;
+  height: 4px;
+  animation-delay: -3.1s;
+  animation-duration: 7.1s;
+}
+.gender-motes i:nth-child(7) {
+  left: 88%;
+  bottom: 14%;
+  animation-delay: -5.8s;
+  animation-duration: 6.2s;
+}
+.gender-motes i:nth-child(8) {
+  left: 26%;
+  bottom: 8%;
+  width: 6px;
+  height: 6px;
+  animation-delay: -4.7s;
+  animation-duration: 7.9s;
+}
+.gender-motes i:nth-child(9) {
+  left: 68%;
+  bottom: 44%;
+  width: 4px;
+  height: 4px;
+  animation-delay: -1.9s;
+  animation-duration: 8.6s;
+}
+.gender-char-girl .gender-motes i {
+  animation-delay: -3.3s;
+}
+.gender-char-girl .gender-motes i:nth-child(2) {
+  animation-delay: -0.9s;
+}
+.gender-char-girl .gender-motes i:nth-child(4) {
+  animation-delay: -6.1s;
+}
+.gender-char-girl .gender-motes i:nth-child(6) {
+  animation-delay: -5.4s;
+}
+.gender-char-girl .gender-motes i:nth-child(8) {
+  animation-delay: -2.8s;
+}
+@keyframes gender-mote-rise {
+  0% {
+    transform: translate(0, 0) scale(0.55);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  55% {
+    transform: translate(8px, -16dvh) scale(1);
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate(-6px, -32dvh) scale(0.75);
+    opacity: 0;
+  }
 }
 /* 序列帧横向排布：男生 14 帧 / 女生 17 帧（周期首尾姿态一致 → 正向无缝循环） */
 .gender-char-boy .gender-char {
@@ -1677,6 +1839,42 @@ body {
     transparent 78%
   );
   filter: blur(3px);
+}
+
+/* 脚下星辉光晕：鞋底接触点向外晕开的泛光，缓缓呼吸（叠 screen 提亮地面） */
+.gender-feet-light {
+  position: absolute;
+  left: 50%;
+  bottom: -4%;
+  width: 150%;
+  height: 17%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse closest-side,
+    rgba(244, 239, 255, 0.9) 0%,
+    rgba(210, 188, 255, 0.6) 30%,
+    rgba(162, 130, 245, 0.32) 56%,
+    transparent 74%
+  );
+  box-shadow: 0 0 22px 8px rgba(196, 170, 255, 0.4);
+  mix-blend-mode: screen;
+  filter: blur(5px);
+  animation: gender-feet-pulse 3.4s ease-in-out infinite;
+}
+.gender-char-girl .gender-feet-light {
+  animation-delay: -1.7s;
+}
+@keyframes gender-feet-pulse {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.18);
+  }
 }
 
 /* 圆形确认按钮：白玻璃圈（成品图样式） */
@@ -1741,17 +1939,24 @@ body {
   }
 }
 
-/* ---- 桌面/宽屏：竖版背景改为取"天空+弧线+地表"中段（弧线落在 ~72dvh），
-        人物成对居中，不再按 10vw 推向两极 ---- */
-@media (min-width: 700px) {
+/* ---- 桌面/宽屏（横屏窗口）：背景全屏铺满（cover），裁切窗口取
+        "星空 → 光弧 → 地表"完整场景段：亮弧上沿落在 ~60% 视口高度
+        （16:9~21:9 下 background-position 71%~73% 均落在此处，取 72%）。
+        人物与手机相同的相对关系站在地表上：脚在亮弧下沿的柔光带里、
+        鞋底下方是地表纹理；横向沿用手机构图（男生中心≈图宽 32%，女生≈73%）。
+        竖屏/接近方形的宽窗口不套用本段，走移动端整图映射 ---- */
+@media (min-width: 700px) and (min-aspect-ratio: 3 / 2) {
   .gender-scene {
-    background-position: center 68%;
+    background-position: center 72%;
+  }
+  .gender-char-btn {
+    bottom: 26dvh;
   }
   .gender-char-boy {
-    left: calc(50% - 215px);
+    left: calc(40vw - 10.5dvh);
   }
   .gender-char-girl {
-    right: calc(50% - 215px);
+    right: calc(40vw - 10.5dvh);
   }
 }
 

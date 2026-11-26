@@ -30,6 +30,8 @@ export function MoodSelectScreen({
             onClick={() => pick(companion.id)}
             className={`gender-char-btn ${isBoy ? "gender-char-boy" : "gender-char-girl"} ${active ? "is-on" : ""}`}
           >
+            {/* 身后呼吸光晕（先画，垫在人物底下） */}
+            <span className="gender-aura" aria-hidden />
             {/* 走路序列帧精灵图：一个完整步态周期正向循环（男生 14 帧/1.17s，女生 17 帧/1.42s），
                 选中播放/未选静止在第 0 帧 */}
             <span
@@ -38,7 +40,13 @@ export function MoodSelectScreen({
                 backgroundImage: `url(${isBoy ? "/gender/boy-walk.webp" : "/gender/girl-walk.webp"})`,
               }}
             />
+            {/* 环绕人物缓缓上升的光尘 */}
+            <span className="gender-motes" aria-hidden>
+              <i /><i /><i /><i /><i /><i /><i /><i /><i />
+            </span>
             <span className="gender-feet-glow" aria-hidden />
+            {/* 脚下星辉光晕：鞋底接触点的柔光呼吸 */}
+            <span className="gender-feet-light" aria-hidden />
           </button>
         );
       })}
