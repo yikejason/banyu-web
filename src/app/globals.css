@@ -2038,6 +2038,29 @@ body {
     0 0 30px 10px rgba(185, 100, 255, 0.45);
 }
 
+/* 状态驱动：未选中=灰暗待机；选中后点亮成彩色并呼吸（呼吸灯） */
+.gender-foot-ring {
+  filter: grayscale(1) brightness(0.4);
+  opacity: 0.55;
+  transition:
+    filter 0.45s ease,
+    opacity 0.45s ease;
+}
+.gender-scene.has-pick .gender-char-btn.is-on .gender-foot-ring {
+  filter: none;
+  opacity: 1;
+  animation: gender-ring-breathe 2.6s ease-in-out infinite;
+}
+@keyframes gender-ring-breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 /* 确认按钮：白字 + 中央发光横线（参考图样式，替代旧圆形玻璃圈） */
 .gender-confirm {
   position: absolute;
