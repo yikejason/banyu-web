@@ -3,6 +3,78 @@
 import { MOOD_COMPANIONS, type MoodCompanionId } from "@/lib/mood/companion";
 import { useState } from "react";
 
+/** 确定性伪随机（固定种子）：粒子布局每次渲染一致，不闪跳 */
+function mulberry32(seed: number) {
+  return () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+type Dust = {
+  x: number;
+  y: number;
+  s: number;
+  delay: number;
+  dur: number;
+  bright?: boolean;
+};
+
+/** 环绕轨道曲线（三次贝塞尔，百分比坐标）：从「命」左下尾迹起，弯过标题上方，沿右侧向下延伸 */
+const ARC_PATH = {
+  p0: { x: 2, y: 62 },
+  c1: { x: 22, y: -18 },
+  c2: { x: 78, y: -50 },
+  p3: { x: 106, y: 42 },
+};
+function cubicAt(t: number) {
+  const u = 1 - t;
+  const { p0, c1, c2, p3 } = ARC_PATH;
+  return {
+    x: u * u * u * p0.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t * t * t * p3.x,
+    y: u * u * u * p0.y + 3 * u * u * t * c1.y + 3 * u * t * t * c2.y + t * t * t * p3.y,
+  };
+}
+
+/** 标题金粉颗粒分布（百分比坐标，相对标题盒）：
+    1) 环绕轨道星尘带 70 颗——流光渐变线，头尾渐隐；2) 字面零星 20 颗；3) 沿轨道 5 颗亮四角星 */
+const TITLE_DUST: Dust[] = (() => {
+  const rnd = mulberry32(20261126);
+  const list: Dust[] = [];
+  const r2 = (v: number) => Math.round(v * 10) / 10;
+  for (let i = 0; i < 70; i++) {
+    const t = i / 69;
+    const p = cubicAt(t);
+    const fade = 0.35 + 0.65 * Math.sin(t * Math.PI); // 头尾渐隐、中段最亮（渐变线）
+    list.push({
+      x: r2(p.x + (rnd() - 0.5) * 3),
+      y: r2(p.y + (rnd() + rnd() + rnd() - 1.5) * 6),
+      s: r2((rnd() < 0.14 ? 3.4 : 1.5 + rnd() * 1.7) * (0.7 + 0.3 * fade)),
+      delay: r2(rnd() * 4),
+      dur: r2(2.4 + rnd() * 2.8),
+      bright: t < 0.1 && rnd() < 0.5,
+    });
+  }
+  for (let i = 0; i < 20; i++) {
+    list.push({
+      x: r2(4 + rnd() * 92),
+      y: r2(18 + rnd() * 62),
+      s: r2(1.2 + rnd() * 1.6),
+      delay: r2(rnd() * 4),
+      dur: r2(2.6 + rnd() * 2.4),
+    });
+  }
+  // 亮四角星锚点：直接取轨道曲线上 5 个位置（环绕感的关键亮点）
+  for (const t of [0.06, 0.3, 0.55, 0.78, 0.96]) {
+    const p = cubicAt(t);
+    list.push({ x: r2(p.x), y: r2(p.y), s: 5, delay: r2(rnd() * 3), dur: 3.6, bright: true });
+  }
+  return list;
+})();
+
 /** 性别选择页：参考成品图——两人站在星球上，♂/♀ 药丸 + 光连线 + 圆形确认按钮 */
 export function MoodSelectScreen({
   onConfirm,
@@ -15,7 +87,54 @@ export function MoodSelectScreen({
 
   return (
     <main className={`gender-scene ${selected ? "has-pick" : ""}`}>
-      <h1 className="gender-title">命运让我们相逢于此</h1>
+      {/* 标题：AI 艺术字（透明通道版）+ 金粉颗粒感：字面颗粒噪点 + 弧线星尘带（流光渐变线）+ 淡金流光 */}
+      <h1 className="gender-title">
+        <img src="/gender/title-mingyun-v3.webp" alt="命运让我们相遇" />
+        {/* 流光渐变线：金色弧线（SVG 二次贝塞尔，与星尘带同曲线），头尾渐隐 */}
+        <svg
+          className="gender-title-arc"
+          viewBox="0 0 343 108"
+          preserveAspectRatio="none"
+          aria-hidden
+        >
+          <defs>
+            <linearGradient id="genderArcGold" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0.12" stopColor="#b892ff" stopOpacity="0" />
+              <stop offset="0.42" stopColor="#d9c5ff" stopOpacity="0.6" />
+              <stop offset="0.72" stopColor="#f2ecff" stopOpacity="0.45" />
+              <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+            </linearGradient>
+            <filter id="genderArcBlur" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="0.7" />
+            </filter>
+          </defs>
+          <path
+            d="M 2 62 C 22 -18 78 -50 106 42"
+            fill="none"
+            stroke="url(#genderArcGold)"
+            strokeWidth="1.5"
+            filter="url(#genderArcBlur)"
+          />
+        </svg>
+        <span className="gender-title-grain" aria-hidden />
+        <span className="gender-title-sweep" aria-hidden />
+        <span className="gender-title-dust" aria-hidden>
+          {TITLE_DUST.map((d, i) => (
+            <i
+              key={i}
+              style={{
+                left: `${d.x}%`,
+                top: `${d.y}%`,
+                width: `${d.s}px`,
+                height: `${d.s}px`,
+                animationDelay: `${d.delay}s`,
+                animationDuration: `${d.dur}s`,
+              }}
+              data-bright={d.bright ? "" : undefined}
+            />
+          ))}
+        </span>
+      </h1>
 
       {/* 两个 selectable 人物：整人可点，站在这颗星球上 */}
       {MOOD_COMPANIONS.map((companion) => {
@@ -37,7 +156,7 @@ export function MoodSelectScreen({
             <span
               className="gender-char"
               style={{
-                backgroundImage: `url(${isBoy ? "/gender/boy-walk.webp" : "/gender/girl-walk.webp"})`,
+                backgroundImage: `url(${isBoy ? "/gender/boy-walk.webp?v=2" : "/gender/girl-walk.webp?v=2"})`,
               }}
             />
             {/* 环绕人物缓缓上升的光尘 */}
@@ -47,6 +166,8 @@ export function MoodSelectScreen({
             <span className="gender-feet-glow" aria-hidden />
             {/* 脚下星辉光晕：鞋底接触点的柔光呼吸 */}
             <span className="gender-feet-light" aria-hidden />
+            {/* 脚下霓虹光环（男青 / 女紫罗兰，CSS 环线恒定满亮） */}
+            <span className="gender-foot-ring" aria-hidden />
           </button>
         );
       })}

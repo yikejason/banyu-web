@@ -9,7 +9,7 @@ test("确认选择 stays disabled until a gender is picked", async () => {
   const user = userEvent.setup();
   render(<MoodSelectScreen onConfirm={onConfirm} />);
 
-  expect(screen.getByRole("heading", { name: "命运让我们相逢于此" })).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "命运让我们相遇" })).toBeTruthy();
   const confirm = screen.getByRole("button", { name: "确认选择" }) as HTMLButtonElement;
   expect(confirm.disabled).toBe(true);
 

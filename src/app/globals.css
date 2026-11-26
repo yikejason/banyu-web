@@ -1545,11 +1545,14 @@ body {
   .btn-flow-ring,
   .btn-spark-shine,
   .m3-toast,
-  .gender-confirm,
   .gender-aura,
   .gender-motes i,
   .gender-feet-light,
-  .gender-char-btn.is-on .gender-char {
+  .gender-char-btn.is-on .gender-char,
+  .gender-title-sweep,
+  .gender-title-grain,
+  .gender-title-arc,
+  .gender-title-dust i {
     animation: none;
   }
 }
@@ -1577,23 +1580,155 @@ body {
   background-color: #171130;
 }
 
-/* 标题：白色发光（成品图同款气质） */
+/* 标题字体：参考字体.jpg 的行楷手书风——马善政楷（Ma Shan Zheng，OFL 可商用），
+   按「命运让我们相逢于此确认选择」13 字子集化，仅 6.4KB。
+   目前标题已改用 AI 艺术字整图（见下），此字体保留备用（换回文字标题时直接用） */
+@font-face {
+  font-family: "gender-title-brush";
+  src: url("/fonts/mashanzheng-subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 标题：AI 生成艺术字（命运让我们相遇.png，水印已裁，黑底已转 alpha 透明通道 title-mingyun-v3.webp）。
+   静止渲染与旧版（不透明黑底 + mix-blend screen）视觉一致；透明通道已就位，将来加发光/流光特效可直接用。
+   质感特效层（光晕/流光/星屑/弧迹）2026-11-26 试过一版被用户否决回退（"不对 回退"），标题保持无特效素图 */
 .gender-title {
   position: absolute;
-  top: clamp(3.2rem, 12dvh, 8rem);
-  left: 0;
-  right: 0;
+  top: clamp(2.4rem, 8dvh, 5.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(88vw, 620px);
   z-index: 10;
-  text-align: center;
-  color: #f4f2ff;
-  font-size: clamp(1.55rem, 7vw, 2.3rem);
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-indent: 0.1em;
-  text-shadow:
-    0 0 18px rgba(210, 200, 255, 0.85),
-    0 0 44px rgba(160, 150, 255, 0.55),
-    0 2px 10px rgba(10, 6, 32, 0.8);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+.gender-title img {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+/* 金粉流金特效（参考颗粒感+流光渐变线图）：字型保持原样。
+   三层：① 字面颗粒噪点（title-grain-v2.png 平铺，字型 alpha 蒙版，缓慢漂移+呼吸）；
+   ② 淡金流光扫过（字型 alpha 蒙版）；③ 弧线星尘带 87 颗细粒（确定性分布，头部亮尾部渐隐，
+   位置/尺寸/延迟写在 TSX 行内）。无雾状光晕（糊字方案已被否决两次） */
+.gender-title-grain {
+  position: absolute;
+  inset: 0;
+  background: url("/gender/title-grain-v2.png") 0 0 / 90px auto repeat;
+  -webkit-mask-image: url("/gender/title-mingyun-v3.webp");
+  mask-image: url("/gender/title-mingyun-v3.webp");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  animation: title-grain 14s linear infinite;
+}
+@keyframes title-grain {
+  0% {
+    background-position: 0 0;
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+  100% {
+    background-position: -90px -28.8px;
+    opacity: 0.55;
+  }
+}
+.gender-title-sweep {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    112deg,
+    transparent 40%,
+    rgba(255, 224, 150, 0.28) 47%,
+    rgba(255, 246, 214, 0.55) 50%,
+    rgba(255, 205, 130, 0.24) 54%,
+    transparent 61%
+  );
+  background-size: 240% 100%;
+  background-repeat: no-repeat;
+  -webkit-mask-image: url("/gender/title-mingyun-v3.webp");
+  mask-image: url("/gender/title-mingyun-v3.webp");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  animation: title-sweep 9s linear infinite;
+}
+@keyframes title-sweep {
+  0% {
+    background-position-x: 100%;
+  }
+  55% {
+    background-position-x: 0%;
+  }
+  100% {
+    background-position-x: 0%;
+  }
+}
+
+/* 流光渐变线（SVG 弧线）+ 星尘带的定位容器：overflow 可见让弧线伸出盒上方 */
+.gender-title-arc {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: title-arc-shimmer 7s ease-in-out infinite alternate;
+}
+@keyframes title-arc-shimmer {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 弧线星尘带：偶数颗=圆点金粉，带 data-bright=亮四角星（弧线起点/锚点几颗） */
+.gender-title-dust {
+  position: absolute;
+  inset: 0;
+}
+.gender-title-dust i {
+  position: absolute;
+  background: radial-gradient(circle, #f3ecff 0%, #c9a6ff 55%, rgba(160, 120, 255, 0) 78%);
+  border-radius: 50%;
+  box-shadow: 0 0 4px 0.5px rgba(190, 155, 255, 0.5);
+  animation: title-dust 3.4s ease-in-out infinite;
+  animation-fill-mode: both;
+}
+.gender-title-dust i[data-bright] {
+  border-radius: 0;
+  background: #eee4ff;
+  clip-path: polygon(
+    50% 0,
+    61% 39%,
+    100% 50%,
+    61% 61%,
+    50% 100%,
+    39% 61%,
+    0 50%,
+    39% 39%
+  );
+  box-shadow: 0 0 6px 2px rgba(190, 155, 255, 0.8);
+}
+@keyframes title-dust {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: scale(0.6) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(20deg);
+  }
 }
 
 /* 人物：整人可点；静止站立，站在星球顶弧上（光带穿过脚踝，脚下是地表） */
@@ -1608,12 +1743,14 @@ body {
 }
 .gender-char-boy {
   left: 10vw;
-  height: 42dvh;
+  /* 两张精灵图画布均为 340x710（修复头顶烤平时从 680 加高，底边脚位不变）：
+     高度按比例补偿，人物像素比例与旧图一致、视觉大小不变，多出画布只是头顶余量 */
+  height: calc(42dvh * 710 / 680);
   transform-origin: 50% 100%;
 }
 .gender-char-girl {
   right: 10vw;
-  height: 42dvh;
+  height: calc(42dvh * 710 / 680);
   transform-origin: 50% 100%;
 }
 
@@ -1622,7 +1759,8 @@ body {
   position: relative;
   z-index: 1; /* 光晕垫底、光尘/脚下光在前，以人物精灵图为基准分层 */
   height: 100%;
-  aspect-ratio: 1 / 2;
+  /* 帧画布 340x710（非 1:2），元素随画布同比例取宽，否则帧会被横向拉胖/纵向压扁 */
+  aspect-ratio: 340 / 710;
   background-repeat: no-repeat;
   background-position-x: 0;
   transform-origin: 50% 100%;
@@ -1877,66 +2015,92 @@ body {
   }
 }
 
-/* 圆形确认按钮：白玻璃圈（成品图样式） */
+/* 霓虹管质感：饱和色锐利环线 + 贴身白色锐光芯（白热灯管感）+ 同色外晕，全程无模糊 */
+.gender-foot-ring {
+  position: absolute;
+  left: 50%;
+  bottom: -2%;
+  transform: translateX(-50%);
+  width: 68%;
+  aspect-ratio: 5.8 / 1;
+  border-radius: 50%;
+  border: 2.5px solid rgba(150, 235, 255, 1);
+  box-shadow:
+    0 0 12px 2px rgba(150, 235, 255, 0.7),
+    0 0 30px 10px rgba(110, 210, 255, 0.45);
+}
+.gender-char-girl .gender-foot-ring {
+  width: 68%;
+  aspect-ratio: 6 / 1;
+  border: 3px solid rgba(200, 130, 255, 1);
+  box-shadow:
+    0 0 12px 2px rgba(200, 130, 255, 0.7),
+    0 0 30px 10px rgba(185, 100, 255, 0.45);
+}
+
+/* 确认按钮：白字 + 中央发光横线（参考图样式，替代旧圆形玻璃圈） */
 .gender-confirm {
   position: absolute;
   z-index: 20;
   left: 50%;
   bottom: 6dvh;
   transform: translateX(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: clamp(5.2rem, 23vw, 6.2rem);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  border: 1px solid rgba(224, 226, 255, 0.65);
-  background:
-    radial-gradient(
-      120% 120% at 50% -18%,
-      rgba(214, 205, 255, 0.4),
-      transparent 55%
-    ),
-    linear-gradient(180deg, rgba(58, 48, 105, 0.6), rgba(30, 24, 62, 0.72));
-  backdrop-filter: blur(10px);
+  width: min(64vw, 320px);
+  padding: 0 0 16px;
+  border: 0;
+  background: none;
   color: #fff;
-  font-size: clamp(0.95rem, 4.2vw, 1.15rem);
+  font-size: clamp(1rem, 4.4vw, 1.2rem);
   font-weight: 500;
-  letter-spacing: 0.16em;
-  text-indent: 0.16em;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
   white-space: nowrap;
-  text-shadow: 0 1px 8px rgba(14, 9, 40, 0.85);
-  box-shadow:
-    0 10px 30px rgba(10, 6, 34, 0.5),
-    0 0 26px rgba(180, 160, 255, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    inset 0 -12px 20px rgba(16, 10, 44, 0.4);
-  animation: gender-confirm-glow 2.8s ease-in-out infinite;
-  transition: filter 0.25s ease;
+  text-shadow:
+    0 0 14px rgba(226, 216, 255, 0.85),
+    0 1px 6px rgba(14, 9, 40, 0.7);
+  transition: opacity 0.25s ease;
 }
-.gender-confirm:hover {
-  filter: brightness(1.12);
+/* 发光下划线：中央最亮、两端渐隐 */
+.gender-confirm::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 16%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(255, 255, 255, 0.3) 84%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px 1px rgba(226, 216, 255, 0.55);
+}
+/* 线中央的菱形亮点 */
+.gender-confirm::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -3px;
+  width: 7px;
+  height: 7px;
+  transform: translateX(-50%) rotate(45deg);
+  background: #fff;
+  box-shadow: 0 0 10px 2px rgba(238, 232, 255, 0.9);
+}
+.gender-confirm:enabled:hover {
+  text-shadow:
+    0 0 18px rgba(238, 230, 255, 1),
+    0 1px 6px rgba(14, 9, 40, 0.7);
+}
+.gender-confirm:enabled:hover::after {
+  box-shadow: 0 0 18px 2px rgba(238, 232, 255, 0.8);
 }
 .gender-confirm:disabled {
-  animation: none;
-  opacity: 0.55;
-}
-@keyframes gender-confirm-glow {
-  0%,
-  100% {
-    box-shadow:
-      0 10px 30px rgba(10, 6, 34, 0.5),
-      0 0 18px rgba(180, 160, 255, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4),
-      inset 0 -12px 20px rgba(16, 10, 44, 0.4);
-  }
-  50% {
-    box-shadow:
-      0 10px 30px rgba(10, 6, 34, 0.5),
-      0 0 34px rgba(180, 160, 255, 0.55),
-      inset 0 1px 0 rgba(255, 255, 255, 0.48),
-      inset 0 -12px 20px rgba(16, 10, 44, 0.4);
-  }
+  opacity: 0.45;
 }
 
 /* ---- 桌面/宽屏（横屏窗口）：背景全屏铺满（cover），裁切窗口取
