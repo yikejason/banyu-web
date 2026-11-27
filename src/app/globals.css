@@ -1547,6 +1547,8 @@ body {
   .m3-toast,
   .gender-aura,
   .gender-motes i,
+  .gender-rise i,
+  .gender-rise i::before,
   .gender-feet-light,
   .gender-char-btn.is-on .gender-char,
   .gender-title-sweep,
@@ -2034,8 +2036,9 @@ body {
   aspect-ratio: 6 / 1;
   border: 3px solid rgba(200, 130, 255, 1);
   box-shadow:
-    0 0 12px 2px rgba(200, 130, 255, 0.7),
-    0 0 30px 10px rgba(185, 100, 255, 0.45);
+    0 0 12px 2px rgba(200, 130, 255, 0.8),
+    0 0 30px 10px rgba(185, 100, 255, 0.5),
+    inset 0 0 5px 1px rgba(255, 255, 255, 0.55); /* 一点白炽：管芯提亮 */
 }
 
 /* 状态驱动：未选中=灰暗待机；选中后点亮成彩色并呼吸（呼吸灯） */
@@ -2052,6 +2055,128 @@ body {
   animation: gender-ring-breathe 2.6s ease-in-out infinite;
 }
 @keyframes gender-ring-breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 光圈上升光幕：霓虹光效——稀疏但有连贯感的细光丝，只从光环「身后半弧」长出、
+   贴环沿垂直向上（前弧干净、不向圈外横向扩展），垫在人物身后（DOM 在 aura
+   之前，无 z-index）；霓虹管质感：纯色管体不掺白（男青 / 女紫罗兰）+ 同色
+   辉光；丝根全部插在 ::before 的后弧光沿上与环连成一体；光丝恒亮只做呼吸
+   不消失，亮脉冲沿丝内壁向上爬升、始终连着光环不断离。
+   丝底的后弧抬升由 TSX 按椭圆曲线逐根算好内联传入 */
+.gender-rise {
+  position: absolute;
+  left: 50%;
+  bottom: -2%; /* 与脚环同一接地线，光丝与环相连 */
+  transform: translateX(-50%);
+  width: 68%;
+  height: 46%;
+  pointer-events: none;
+  /* 状态随环：未选灰暗待机，选中点亮 */
+  filter: grayscale(1) brightness(0.5);
+  opacity: 0.4;
+  transition:
+    filter 0.45s ease,
+    opacity 0.45s ease;
+}
+.gender-char-boy .gender-rise {
+  --beam-c: 150, 235, 255;
+}
+/* 女生：粉紫（饱和不发白、不发粉腻），选中态小幅度提亮增清晰 */
+.gender-char-girl .gender-rise {
+  --beam-c: 222, 158, 255;
+}
+.gender-scene.has-pick .gender-char-btn.is-on .gender-rise {
+  filter: none;
+  opacity: 1;
+}
+/* 女生小幅度提亮（幅度大会把通道削成 255 变白） */
+.gender-scene.has-pick .gender-char-btn.is-on.gender-char-girl .gender-rise {
+  filter: brightness(1.08);
+}
+/* 后弧光沿：与脚环同椭圆的后半段连续亮线（clip 掉前弧），
+   光幕丝根根插在这条线上、与环连成一体（连接紧密）；
+   交点处白光：白热芯线 + 白辉光，外圈再晕一层主题色 */
+.gender-rise::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12%; /* 环椭圆全高（男 12.2% / 女 11.8% 的折中） */
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 0 8px 2px rgba(255, 255, 255, 0.65),
+    0 0 14px 5px rgba(var(--beam-c), 0.45),
+    inset 0 0 8px 1px rgba(255, 255, 255, 0.45);
+  clip-path: inset(-14px -14px 55% -14px); /* 只留后弧段，前弧干净 */
+  pointer-events: none;
+}
+.gender-rise i {
+  position: absolute;
+  bottom: 0;
+  border-radius: 999px;
+  overflow: hidden; /* 上升脉冲裁剪在丝内 */
+  background: linear-gradient(
+    to top,
+    rgba(var(--beam-c), 1) 0%,
+    rgba(var(--beam-c), 0.9) 22%,
+    rgba(var(--beam-c), 0.6) 45%,
+    rgba(var(--beam-c), 0.3) 70%,
+    rgba(var(--beam-c), 0.08) 88%,
+    transparent 100%
+  );
+  box-shadow: 0 0 5px 1px rgba(var(--beam-c), 0.55);
+  animation: gender-beam-breathe ease-in-out infinite;
+}
+.gender-rise i[data-bright] {
+  box-shadow:
+    0 0 6px 1.5px rgba(var(--beam-c), 0.65),
+    0 0 16px 6px rgba(var(--beam-c), 0.45);
+}
+/* 丝内上升的亮脉冲：亮头朝上沿光丝爬升一周，光丝本体不位移（不断离光环） */
+.gender-rise i::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  border-radius: inherit;
+  background: linear-gradient(
+    to top,
+    transparent 0%,
+    rgba(var(--beam-c), 0.85) 80%,
+    rgba(var(--beam-c), 1) 100%
+  );
+  transform: translateY(115%);
+  animation: gender-beam-pulse var(--pd, 3.4s) linear infinite;
+  animation-delay: var(--pdel, 0s);
+}
+@keyframes gender-beam-pulse {
+  0% {
+    transform: translateY(115%);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+}
+@keyframes gender-beam-breathe {
   0%,
   100% {
     opacity: 0.72;
