@@ -93,16 +93,17 @@ type Beam = {
 };
 
 function makeBeams(seed: number, ringRy: number, phase = 0): Beam[] {
-  // ringRy：光环椭圆纵向半轴，占光幕容器高度的 %（环宽 68%、男 5.8:1 / 女 6:1 算出）；
-  // phase：动画相位偏移（秒），几何分布不变、只错开节奏
+  // ringRy：光环椭圆纵向半轴，占光幕容器高度的 %（环宽 68%、男 5.8:1 / 女 6:1，
+  // 容器高 58% 算出）；phase：动画相位偏移（秒），几何分布不变、只错开节奏
   const rnd = mulberry32(seed);
   const r2 = (v: number) => Math.round(v * 10) / 10;
   const list: Beam[] = [];
   for (let i = 0; i < 44; i++) {
-    // 三档高度：多数极短丝贴着环沿（与光环连接处浓密连续），少数长丝探高（越往上越稀疏）
+    // 三档高度：多数极短丝贴着环沿（连接处浓密连续），少数长丝探高；
+    // 越往上升丝越少越细越淡（稀薄）
     const roll = rnd();
     const tall = roll >= 0.88;
-    const mid = roll >= 0.6 && roll < 0.88;
+    const mid = roll >= 0.66 && roll < 0.88;
     const wRoll = rnd();
     // 均匀栅格 + 微抖动：丝距拉开（稀疏），丝身加长让上下衔接更紧
     const x = r2(1.5 + ((i + 0.5) / 44) * 97 + (rnd() - 0.5) * 2);
@@ -111,8 +112,8 @@ function makeBeams(seed: number, ringRy: number, phase = 0): Beam[] {
     list.push({
       x,
       by: r2(arc),
-      w: wRoll < 0.5 ? 1 : 2,
-      h: r2(tall ? 44 + rnd() * 22 : mid ? 22 + rnd() * 16 : 8 + rnd() * 14),
+      w: tall ? 1 : wRoll < 0.5 ? 1 : 2, // 长丝只用 1px（高处更稀薄）
+      h: r2(tall ? 40 + rnd() * 30 : mid ? 20 + rnd() * 14 : 8 + rnd() * 12),
       delay: r2(-rnd() * 6 - phase),
       dur: r2(3 + rnd() * 3),
       pdel: r2(-rnd() * 4.5 - phase * 0.8),
@@ -123,11 +124,35 @@ function makeBeams(seed: number, ringRy: number, phase = 0): Beam[] {
   return list;
 }
 // 男女共用同一几何种子：疏密长短分布完全一致（女生曾因种子不同碰出偏密的排布），
-// 只差环纵半轴（5.8:1 / 6:1）与动画相位
-const BOY_BEAMS = makeBeams(20261127, 6.1);
-const GIRL_BEAMS = makeBeams(20261127, 5.9, 2.1);
+// 只差环纵半轴（5.8:1 / 6:1，随容器 58% 高换算）与动画相位
+const BOY_BEAMS = makeBeams(20261127, 4.8);
+const GIRL_BEAMS = makeBeams(20261127, 4.7, 2.1);
 
-/** 性别选择页：参考成品图——两人站在星球上，♂/♀ 药丸 + 光连线 + 圆形确认按钮 */
+/** 涟漪扩散时带起的少量细碎星尘：贴光圈缓缓上浮的小光点，数量克制（固定种子
+    不闪跳，男女共用同一几何分布；只随选中迈步的涟漪出现） */
+type HaloDust = {
+  x: number; // 盘内横向位置 %
+  b: number; // 起浮高度 %（盘内）
+  s: number; // 尺寸 px
+  delay: number; // 相位（负延迟错开）
+  dur: number; // 上浮周期 s
+};
+
+const HALO_DUST: HaloDust[] = (() => {
+  const rnd = mulberry32(20261128);
+  const r2 = (v: number) => Math.round(v * 10) / 10;
+  const list: HaloDust[] = [];
+  for (let i = 0; i < 5; i++) {
+    list.push({
+      x: r2(12 + rnd() * 76),
+      b: r2(16 + rnd() * 44),
+      s: rnd() < 0.5 ? 2 : 3,
+      delay: r2(-rnd() * 5),
+      dur: r2(3.8 + rnd() * 1.8),
+    });
+  }
+  return list;
+})();
 export function MoodSelectScreen({
   onConfirm,
 }: {
@@ -229,6 +254,22 @@ export function MoodSelectScreen({
               <i />
               <i />
             </span>
+            {/* 涟漪扩散时带起的少量细碎星尘（数量克制，选中迈步时才有） */}
+            <span className="gender-halo-dust" aria-hidden>
+              {HALO_DUST.map((d, i) => (
+                <i
+                  key={i}
+                  style={{
+                    left: `${d.x}%`,
+                    bottom: `${d.b}%`,
+                    width: `${d.s}px`,
+                    height: `${d.s}px`,
+                    animationDelay: `${d.delay}s`,
+                    animationDuration: `${d.dur}s`,
+                  }}
+                />
+              ))}
+            </span>
             {/* 身后呼吸光晕（光幕之上、人物底下） */}
             <span className="gender-aura" aria-hidden />
             {/* 走路序列帧精灵图：一个完整步态周期正向循环（男生 14 帧/1.17s，女生 17 帧/1.42s），
@@ -246,6 +287,8 @@ export function MoodSelectScreen({
             <span className="gender-feet-glow" aria-hidden />
             {/* 脚下星辉光晕：鞋底接触点的柔光呼吸 */}
             <span className="gender-feet-light" aria-hidden />
+            {/* 脚下霓虹光环（男青 / 女紫罗兰，CSS 环线恒定满亮） */}
+            <span className="gender-foot-ring" aria-hidden />
           </button>
         );
       })}

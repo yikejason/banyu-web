@@ -1551,6 +1551,7 @@ body {
   .gender-rise i::before,
   .gender-halo,
   .gender-halo i,
+  .gender-halo-dust i,
   .gender-feet-light,
   .gender-char-btn.is-on .gender-char,
   .gender-title-sweep,
@@ -2019,6 +2020,54 @@ body {
   }
 }
 
+/* 霓虹管质感：饱和色锐利环线 + 贴身白色锐光芯（白热灯管感）+ 同色外晕，全程无模糊；
+   与羽化光晕 .gender-halo 叠用：环线勾边、光晕垫底 */
+.gender-foot-ring {
+  position: absolute;
+  left: 50%;
+  bottom: -2%;
+  transform: translateX(-50%);
+  width: 68%;
+  aspect-ratio: 5.8 / 1;
+  border-radius: 50%;
+  border: 2.5px solid rgba(150, 235, 255, 1);
+  box-shadow:
+    0 0 12px 2px rgba(150, 235, 255, 0.7),
+    0 0 30px 10px rgba(110, 210, 255, 0.45);
+}
+.gender-char-girl .gender-foot-ring {
+  width: 68%;
+  aspect-ratio: 6 / 1;
+  border: 3px solid rgba(200, 130, 255, 1);
+  box-shadow:
+    0 0 12px 2px rgba(200, 130, 255, 0.8),
+    0 0 30px 10px rgba(185, 100, 255, 0.5),
+    inset 0 0 5px 1px rgba(255, 255, 255, 0.55); /* 一点白炽：管芯提亮 */
+}
+
+/* 状态驱动：未选中=灰暗待机；选中后点亮成彩色并呼吸（呼吸灯） */
+.gender-foot-ring {
+  filter: grayscale(1) brightness(0.4);
+  opacity: 0.55;
+  transition:
+    filter 0.45s ease,
+    opacity 0.45s ease;
+}
+.gender-scene.has-pick .gender-char-btn.is-on .gender-foot-ring {
+  filter: none;
+  opacity: 1;
+  animation: gender-ring-breathe 2.6s ease-in-out infinite;
+}
+@keyframes gender-ring-breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 /* 脚下羽化光晕：柔光托在脚下（DOM 在人物之前=人物底层，不盖鞋），
    高斯羽化拉满、拒绝硬边/锯齿/生硬圆盘；配色：男=通透冷蓝 / 女=项目同款淡紫；
    状态随选中：未选灰暗待机，选中点亮 + 缓慢呼吸明暗（呼吸灯） */
@@ -2056,7 +2105,22 @@ body {
 .gender-scene.has-pick .gender-char-btn.is-on .gender-halo {
   filter: blur(5px);
   opacity: 1;
-  animation: gender-halo-breathe 4.2s ease-in-out infinite;
+  /* 呼吸（opacity）与步频起伏（filter）不同属性可并列：
+     落步瞬间光环最亮、抬脚时减弱，周期=半周期=步频，与涟漪落点对齐 */
+  animation:
+    gender-halo-breathe 4.2s ease-in-out infinite,
+    gender-halo-step calc(var(--halo-cycle, 1.2s) / 2) ease-in-out infinite;
+}
+@keyframes gender-halo-step {
+  0% {
+    filter: blur(5px) brightness(1.22); /* 脚步落下时光环最亮 */
+  }
+  55% {
+    filter: blur(5px) brightness(0.85); /* 抬脚时光环减弱 */
+  }
+  100% {
+    filter: blur(5px) brightness(1.22);
+  }
 }
 @keyframes gender-halo-breathe {
   0%,
@@ -2105,6 +2169,51 @@ body {
   }
 }
 
+/* 涟漪扩散时带起的少量细碎星尘：贴光圈缓缓上浮、渐隐（数量克制不乱飞），
+   只随选中迈步（涟漪进行中）出现 */
+.gender-halo-dust {
+  position: absolute;
+  left: 50%;
+  bottom: -3.5%;
+  transform: translateX(-50%);
+  width: 72%;
+  height: 8%;
+  pointer-events: none;
+}
+.gender-char-boy .gender-halo-dust {
+  --halo-c: 150, 225, 255;
+}
+.gender-char-girl .gender-halo-dust {
+  --halo-c: 205, 165, 255;
+}
+.gender-halo-dust i {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(var(--halo-c), 0.75) 50%,
+    transparent 75%
+  );
+  opacity: 0;
+}
+.gender-scene.has-pick .gender-char-btn.is-on .gender-halo-dust i {
+  animation: gender-halo-dust-rise ease-in-out infinite;
+}
+@keyframes gender-halo-dust-rise {
+  0% {
+    transform: translateY(0) scale(0.7);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(-2.6dvh) scale(1);
+    opacity: 0;
+  }
+}
+
 /* 光圈上升光幕：霓虹光效——稀疏但有连贯感的细光丝，只从光环「身后半弧」长出、
    贴环沿垂直向上（前弧干净、不向圈外横向扩展），垫在人物身后（DOM 在 aura
    之前，无 z-index）；霓虹管质感：纯色管体不掺白（男青 / 女紫罗兰）+ 同色
@@ -2117,10 +2226,10 @@ body {
   bottom: -2%; /* 与脚环同一接地线，光丝与环相连 */
   transform: translateX(-50%);
   width: 68%;
-  height: 46%;
+  height: 58%; /* 光雾升得更高；越往上丝越少越淡=稀薄 */
   pointer-events: none;
-  /* 状态随环：未选灰暗待机，选中点亮 */
-  filter: grayscale(1) brightness(0.5);
+  /* 状态随环：未选灰暗待机，选中点亮；blur 把细丝晕成光雾（保留丝纹），1.8px=雾而不糊 */
+  filter: blur(1.8px) grayscale(1) brightness(0.5);
   opacity: 0.4;
   transition:
     filter 0.45s ease,
@@ -2129,17 +2238,17 @@ body {
 .gender-char-boy .gender-rise {
   --beam-c: 150, 235, 255;
 }
-/* 女生：粉紫（饱和不发白、不发粉腻），选中态小幅度提亮增清晰 */
+/* 女生：粉紫（饱和不发白、不发粉腻） */
 .gender-char-girl .gender-rise {
   --beam-c: 222, 158, 255;
 }
+/* 选中提亮：光雾更亮更清晰有质感（brightness 大于 1.1 会削白，已控制） */
 .gender-scene.has-pick .gender-char-btn.is-on .gender-rise {
-  filter: none;
+  filter: blur(1.8px) brightness(1.12) saturate(1.05);
   opacity: 1;
 }
-/* 女生小幅度提亮（幅度大会把通道削成 255 变白） */
 .gender-scene.has-pick .gender-char-btn.is-on.gender-char-girl .gender-rise {
-  filter: brightness(1.08);
+  filter: blur(1.8px) brightness(1.08) saturate(1.05);
 }
 /* 后弧光沿：与脚环同椭圆的后半段连续亮线（clip 掉前弧），
    光幕丝根根插在这条线上、与环连成一体（连接紧密）；
@@ -2157,7 +2266,7 @@ body {
     0 0 8px 2px rgba(255, 255, 255, 0.65),
     0 0 14px 5px rgba(var(--beam-c), 0.45),
     inset 0 0 8px 1px rgba(255, 255, 255, 0.45);
-  filter: blur(1.5px); /* 光沿羽化：随柔光光晕读作一段亮光，不做硬线 */
+  filter: blur(3px); /* 光沿羽化：随光雾晕成一段柔亮，不做硬线 */
   clip-path: inset(-14px -14px 55% -14px); /* 只留后弧段，前弧干净 */
   pointer-events: none;
 }
@@ -2169,12 +2278,12 @@ body {
   background: linear-gradient(
     to top,
     rgba(var(--beam-c), 1) 0%,
-    rgba(var(--beam-c), 0.9) 22%,
-    rgba(var(--beam-c), 0.6) 45%,
-    rgba(var(--beam-c), 0.3) 70%,
-    rgba(var(--beam-c), 0.08) 88%,
+    rgba(var(--beam-c), 0.92) 20%,
+    rgba(var(--beam-c), 0.6) 42%,
+    rgba(var(--beam-c), 0.25) 66%,
+    rgba(var(--beam-c), 0.06) 86%,
     transparent 100%
-  );
+  ); /* 越往上升越稀薄 */
   box-shadow: 0 0 5px 1px rgba(var(--beam-c), 0.55);
   animation: gender-beam-breathe ease-in-out infinite;
 }
