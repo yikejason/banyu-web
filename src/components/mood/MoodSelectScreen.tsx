@@ -223,6 +223,12 @@ export function MoodSelectScreen({
                 />
               ))}
             </span>
+            {/* 脚下羽化光晕 + 步频涟漪：柔光托在脚下、垫人物底层不盖鞋，
+                高斯羽化无硬边；选中迈步时左右脚交替泛起柔光涟漪缓缓外扩衰减 */}
+            <span className="gender-halo" aria-hidden>
+              <i />
+              <i />
+            </span>
             {/* 身后呼吸光晕（光幕之上、人物底下） */}
             <span className="gender-aura" aria-hidden />
             {/* 走路序列帧精灵图：一个完整步态周期正向循环（男生 14 帧/1.17s，女生 17 帧/1.42s），
@@ -240,8 +246,6 @@ export function MoodSelectScreen({
             <span className="gender-feet-glow" aria-hidden />
             {/* 脚下星辉光晕：鞋底接触点的柔光呼吸 */}
             <span className="gender-feet-light" aria-hidden />
-            {/* 脚下霓虹光环（男青 / 女紫罗兰，CSS 环线恒定满亮） */}
-            <span className="gender-foot-ring" aria-hidden />
           </button>
         );
       })}
