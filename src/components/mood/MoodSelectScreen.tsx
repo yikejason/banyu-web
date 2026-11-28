@@ -1,7 +1,7 @@
 "use client";
 
 import { MOOD_COMPANIONS, type MoodCompanionId } from "@/lib/mood/companion";
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 
 /** 确定性伪随机（固定种子）：粒子布局每次渲染一致，不闪跳 */
 function mulberry32(seed: number) {
@@ -75,61 +75,8 @@ const TITLE_DUST: Dust[] = (() => {
   return list;
 })();
 
-/** 光圈上升光幕：霓虹光效——细光丝只从光环「身后半弧」上长出、贴着环沿垂直
-    向上延伸（前弧干净、不向圈外横向扩展）；均匀栅格 + 微抖动，丝根插在 CSS
-    画的后弧光沿上与环连成一体；下面密集连续（多数短丝聚在环沿）、上面稀疏
-    （少数长丝探高）；纯色管体不掺白 + 同色辉光，长短不一；每根恒亮只做呼吸，
-    亮脉冲沿丝内壁向上爬升（不脱离光环），男女用不同种子错开节奏 */
-type Beam = {
-  x: number; // 环宽内横向位置 %
-  by: number; // 丝底沿后弧的抬升（相对容器 %：中央=环纵全高，两端=纵半轴）
-  w: number; // 线宽 px
-  h: number; // 光丝长度（相对容器 %）
-  delay: number; // 整丝呼吸相位（负延迟错开）
-  dur: number; // 呼吸周期 s
-  pdel: number; // 丝内脉冲相位（负延迟错开）
-  pd: number; // 脉冲周期 s
-  bright?: boolean; // 少数带白色辉光的亮丝
-};
-
-function makeBeams(seed: number, ringRy: number, phase = 0): Beam[] {
-  // ringRy：光环椭圆纵向半轴，占光幕容器高度的 %（环宽 68%、男 5.8:1 / 女 6:1，
-  // 容器高 58% 算出）；phase：动画相位偏移（秒），几何分布不变、只错开节奏
-  const rnd = mulberry32(seed);
-  const r2 = (v: number) => Math.round(v * 10) / 10;
-  const list: Beam[] = [];
-  for (let i = 0; i < 44; i++) {
-    // 三档高度：多数极短丝贴着环沿（连接处浓密连续），少数长丝探高；
-    // 越往上升丝越少越细越淡（稀薄）
-    const roll = rnd();
-    const tall = roll >= 0.88;
-    const mid = roll >= 0.66 && roll < 0.88;
-    const wRoll = rnd();
-    // 均匀栅格 + 微抖动：丝距拉开（稀疏），丝身加长让上下衔接更紧
-    const x = r2(1.5 + ((i + 0.5) / 44) * 97 + (rnd() - 0.5) * 2);
-    const t = (x - 50) / 50; // -1..1（环横向归一）
-    const arc = ringRy * (1 + Math.sqrt(1 - t * t)); // 后弧曲线
-    list.push({
-      x,
-      by: r2(arc),
-      w: tall ? 1 : wRoll < 0.5 ? 1 : 2, // 长丝只用 1px（高处更稀薄）
-      h: r2(tall ? 40 + rnd() * 30 : mid ? 20 + rnd() * 14 : 8 + rnd() * 12),
-      delay: r2(-rnd() * 6 - phase),
-      dur: r2(3 + rnd() * 3),
-      pdel: r2(-rnd() * 4.5 - phase * 0.8),
-      pd: r2(2.6 + rnd() * 1.9),
-      bright: rnd() < 0.18,
-    });
-  }
-  return list;
-}
-// 男女共用同一几何种子：疏密长短分布完全一致（女生曾因种子不同碰出偏密的排布），
-// 只差环纵半轴（5.8:1 / 6:1，随容器 58% 高换算）与动画相位
-const BOY_BEAMS = makeBeams(20261127, 4.8);
-const GIRL_BEAMS = makeBeams(20261127, 4.7, 2.1);
-
-/** 涟漪扩散时带起的少量细碎星尘：贴光圈缓缓上浮的小光点，数量克制（固定种子
-    不闪跳，男女共用同一几何分布；只随选中迈步的涟漪出现） */
+/** 光圈周围缓缓上浮的少量细碎星尘：小光点，数量克制（固定种子
+    不闪跳，男女共用同一几何分布；只随选中点亮出现） */
 type HaloDust = {
   x: number; // 盘内横向位置 %
   b: number; // 起浮高度 %（盘内）
@@ -226,35 +173,10 @@ export function MoodSelectScreen({
             onClick={() => pick(companion.id)}
             className={`gender-char-btn ${isBoy ? "gender-char-boy" : "gender-char-girl"} ${active ? "is-on" : ""}`}
           >
-            {/* 光圈上升光幕：只从光环后半弧长出、垂直向上，垫在人物身后
-                （先画垫底）；亮脉冲沿丝内上升；随环点亮（男青 / 女紫） */}
-            <span className="gender-rise" aria-hidden>
-              {(isBoy ? BOY_BEAMS : GIRL_BEAMS).map((b, i) => (
-                <i
-                  key={i}
-                  style={
-                    {
-                      left: `${b.x}%`,
-                      bottom: `${b.by}%`,
-                      width: `${b.w}px`,
-                      height: `${b.h}%`,
-                      animationDelay: `${b.delay}s`,
-                      animationDuration: `${b.dur}s`,
-                      "--pd": `${b.pd}s`,
-                      "--pdel": `${b.pdel}s`,
-                    } as CSSProperties
-                  }
-                  data-bright={b.bright ? "" : undefined}
-                />
-              ))}
-            </span>
-            {/* 脚下羽化光晕 + 步频涟漪：柔光托在脚下、垫人物底层不盖鞋，
-                高斯羽化无硬边；选中迈步时左右脚交替泛起柔光涟漪缓缓外扩衰减 */}
-            <span className="gender-halo" aria-hidden>
-              <i />
-              <i />
-            </span>
-            {/* 涟漪扩散时带起的少量细碎星尘（数量克制，选中迈步时才有） */}
+            {/* 脚下羽化光晕：柔光托在脚下、垫人物底层不盖鞋、垫在多环光圈底下，
+                高斯羽化无硬边；选中后点亮并随步频轻微起伏 */}
+            <span className="gender-halo" aria-hidden />
+            {/* 光圈带起的少量细碎星尘（数量克制，选中后才有） */}
             <span className="gender-halo-dust" aria-hidden>
               {HALO_DUST.map((d, i) => (
                 <i
@@ -287,7 +209,7 @@ export function MoodSelectScreen({
             <span className="gender-feet-glow" aria-hidden />
             {/* 脚下星辉光晕：鞋底接触点的柔光呼吸 */}
             <span className="gender-feet-light" aria-hidden />
-            {/* 脚下霓虹光环（男青 / 女紫罗兰，CSS 环线恒定满亮） */}
+            {/* 脚下多环光圈：贴脚主环白热管芯 + 外围多层渐淡同心环（参考图样式） */}
             <span className="gender-foot-ring" aria-hidden />
           </button>
         );
